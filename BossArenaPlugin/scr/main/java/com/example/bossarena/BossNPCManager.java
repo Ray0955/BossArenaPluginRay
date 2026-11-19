@@ -240,4 +240,206 @@ public class BossNPCManager implements Listener {
             });
         } else if (slot == 53 && holder.page < holder.pages - 1) {
             Bukkit.getScheduler().runTask(plugin, () -> {
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.1f);
+                openPage(player, holder.items, holder.page + 1);
+            });
+        } else if (slot == 49) {
+            Bukkit.getScheduler().runTask(plugin, player::closeInventory);
+        }
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof ShowcaseHolder) event.setCancelled(true);
+    }
+
+    private void openShowcase(Player player) {
+        if (!player.hasPermission("bossarena.npc.use")) {
+            player.sendMessage(ChatColor.RED + "❌ У вас нет доступа к витрине!");
+            return;
+        }
+        if (!isAvailable()
+                && !player.hasPermission("bossarena.npc.use.disabled")
+                && !player.hasPermission("bossarena.npc.bypass")) {
+            player.sendMessage(color(plugin.getConfig().getString("boss_npc.disabled_message",
+                    "&c⚠️ Витрина недоступна! Тех. работы.")));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            return;
+        }
+
+        List<ItemStack> items = buildDisplayItems();
+        openPage(player, items, 0);
+        player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 0.8f, 1.2f);
+
+        String click = plugin.getConfig().getString("boss_npc.click_message", "");
+        if (click != null && !click.isEmpty()) player.sendActionBar(comp(click));
+    }
+
+    private List<ItemStack> buildDisplayItems() {
+        LootManager lm = new LootManager(plugin);
+        boolean partial = plugin.getConfig().getInt("chest.guaranteed_max", 0) > 0;
+
+        List<LootManager.LootItem> customs = new ArrayList<>(lm.getCustomLootItems());
+        customs.sort(Comparator.comparingDouble(i -> i.chance));
+        List<LootManager.LootItem> mats = new ArrayList<>(lm.getLootItems());
+        mats.sort(Comparator.comparingDouble(i -> i.chance));
+
+        List<ItemStack> result = new ArrayList<>();
+        for (LootManager.LootItem li : customs) {
+            ItemStack s = buildDisplay(li, partial);
+            if (s != null) result.add(s);
+        }
+        for (LootManager.LootItem li : mats) {
+            ItemStack s = buildDisplay(li, partial);
+            if (s != null) result.add(s);
+        }
+        return result;
+    }
+
+    private ItemStack buildDisplay(LootManager.LootItem li, boolean partial) {
+        ItemStack stack = li.isCustom
+                ? bossManager.getCustomItemsManager().createItem(li.itemId)
+                : new ItemStack(li.material);
+        if (stack == null) return null;
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) return stack;
+
+        double c = li.chance;
+        boolean mythic = li.isCustom || c < 1.0;
+
+        List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        lore.add(Component.empty());
+        lore.add(comp("&8▪ &7Шанс: " + rarityColor(c, li.isCustom) + fmt(c) + "%"));
+        lore.add(comp("&8▪ &7Количество: &f"
+                + (li.minAmount == li.maxAmount ? String.valueOf(li.minAmount) : li.minAmount + "-" + li.maxAmount)));
+        lore.add(comp("&8▪ &7Редкость: " + rarityName(c, li.isCustom)));
+        if (c >= 100.0 && partial) lore.add(comp("&8▪ &7В сундуке выпадает лишь часть таких"));
+        meta.lore(lore);
+
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        if (mythic) meta.setEnchantmentGlintOverride(true);
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
+    private void openPage(Player player, List<ItemStack> items, int page) {
+        var cfg = plugin.getConfig();
+        int perRow = Math.max(1, Math.min(7, cfg.getInt("boss_npc.showcase.items_per_row", 7)));
+        int capacity = perRow * 4;
+        int pages = Math.max(1, (items.size() + capacity - 1) / capacity);
+        page = Math.max(0, Math.min(page, pages - 1));
+
+        String baseTitle = cfg.getString("boss_npc.showcase.title", "&6&l📦 Ресурсы с боссов");
+        ShowcaseHolder holder = new ShowcaseHolder(items, page, pages);
+        Inventory inv = Bukkit.createInventory(holder, 54,
+                LEGACY.deserialize(color(baseTitle + " &8(" + (page + 1) + "/" + pages + ")")));
+        holder.inventory = inv;
+
+        ItemStack paneA = pane(Material.PURPLE_STAINED_GLASS_PANE);
+        ItemStack paneB = pane(Material.MAGENTA_STAINED_GLASS_PANE);
+        for (int i = 0; i < 54; i++) {
+            int r = i / 9, c = i % 9;
+            if (r == 0 || r == 5 || c == 0 || c == 8) inv.setItem(i, ((r + c) % 2 == 0 ? paneA : paneB).clone());
+        }
+
+        int startCol = 1 + (7 - perRow) / 2;
+        int from = page * capacity;
+        for (int idx = 0; idx < capacity; idx++) {
+            int itemIndex = from + idx;
+            if (itemIndex >= items.size()) break;
+            int row = 1 + idx / perRow;
+            int col = startCol + idx % perRow;
+            inv.setItem(row * 9 + col, items.get(itemIndex).clone());
+        }
+
+        inv.setItem(4, infoItem());
+        if (page > 0) inv.setItem(45, button(Material.ARROW, "&e◀ Назад", "&7Страница " + page + "/" + pages));
+        if (page < pages - 1) inv.setItem(53, button(Material.ARROW, "&eВперёд ▶", "&7Страница " + (page + 2) + "/" + pages));
+        inv.setItem(49, button(Material.BARRIER, "&c✖ Закрыть"));
+
+        ItemStack dark = pane(Material.BLACK_STAINED_GLASS_PANE);
+        for (int i = 0; i < 54; i++) if (inv.getItem(i) == null) inv.setItem(i, dark.clone());
+
+        player.openInventory(inv);
+    }
+
+    private ItemStack infoItem() {
+        var cfg = plugin.getConfig();
+        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(comp(cfg.getString("boss_npc.info.title", "&6&l📖 ВАЖНО!")));
+        List<Component> lore = new ArrayList<>();
+        for (String line : cfg.getStringList("boss_npc.info.lore")) lore.add(comp(line));
+        meta.lore(lore);
+        meta.setEnchantmentGlintOverride(true);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack button(Material material, String name, String... loreLines) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(comp(name));
+        if (loreLines.length > 0) {
+            List<Component> lore = new ArrayList<>();
+            for (String l : loreLines) lore.add(comp(l));
+            meta.lore(lore);
+        }
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack pane(Material material) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Component.text(" "));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private String color(String s) {
+        return ChatColor.translateAlternateColorCodes('&', s == null ? "" : s);
+    }
+
+    private Component comp(String s) {
+        return LEGACY.deserialize(color(s)).decoration(TextDecoration.ITALIC, false);
+    }
+
+    private String fmt(double c) {
+        String s = String.format(Locale.US, "%.2f", c);
+        s = s.replaceAll("0+$", "").replaceAll("\\.$", "");
+        return s;
+    }
+
+    private String rarityColor(double c, boolean custom) {
+        if (custom || c < 1.0) return "&d&l";
+        if (c < 10.0) return "&6";
+        if (c < 40.0) return "&5";
+        if (c < 100.0) return "&9";
+        return "&7";
+    }
+
+    private String rarityName(double c, boolean custom) {
+        if (custom || c < 1.0) return "&d&l★ МИФИЧЕСКИЙ ★";
+        if (c < 10.0) return "&6&lЛегендарный";
+        if (c < 40.0) return "&5Эпический";
+        if (c < 100.0) return "&9Редкий";
+        return "&7Обычный";
+    }
+
+    private static class ShowcaseHolder implements InventoryHolder {
+        final List<ItemStack> items;
+        final int page;
+        final int pages;
+        Inventory inventory;
+
+        ShowcaseHolder(List<ItemStack> items, int page, int pages) {
+            this.items = items;
+            this.page = page;
+            this.pages = pages;
+        }
+
+        @Override
+        public Inventory getInventory() { return inventory; }
+    }
+}

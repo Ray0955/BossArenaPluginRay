@@ -2,9 +2,6 @@ package com.example.bossarena;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * Управление конфигом (Ray095).
- */
 public class ConfigManager {
 
     private final JavaPlugin plugin;

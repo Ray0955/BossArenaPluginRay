@@ -21,13 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
-/**
- * Админ-календарь: редактирование расписания боссов прямо в игре (Ray095).
- *
- * Все изменения сразу записываются в config.yml.
- * Меню распознаются по InventoryHolder, а не по названию.
- * Слушатель регистрируется один раз в BossArena.onEnable.
- */
 public class CalendarAdminGUI implements Listener {
 
     private enum Type { MAIN, DAY, EDIT, CONFIRM }
@@ -38,15 +31,12 @@ public class CalendarAdminGUI implements Listener {
     private final JavaPlugin plugin;
     private final CalendarManager calendar;
     private final Map<UUID, EditSession> sessions = new HashMap<>();
-    // чат приходит из другого потока, поэтому потокобезопасный набор
     private final Set<UUID> awaitingChat = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public CalendarAdminGUI(JavaPlugin plugin, CalendarManager calendar) {
         this.plugin = plugin;
         this.calendar = calendar;
     }
-
-    // ───────────────────────── Типы данных ─────────────────────────
 
     private static class AdminHolder implements InventoryHolder {
         final Type type;
@@ -65,8 +55,8 @@ public class CalendarAdminGUI implements Listener {
 
     private static class EditSession {
         final String day;
-        final int index;      // -1 = новое событие
-        int minutes;          // 0..1439
+        final int index;
+        int minutes;
         String boss;
         String message;
         int bossPage = 0;
@@ -83,8 +73,6 @@ public class CalendarAdminGUI implements Listener {
 
         void shift(int delta) { minutes = ((minutes + delta) % 1440 + 1440) % 1440; }
     }
-
-    // ───────────────────────── Главное меню ─────────────────────────
 
     public void openMainMenu(Player player) {
         AdminHolder holder = new AdminHolder(Type.MAIN, null);
@@ -136,8 +124,6 @@ public class CalendarAdminGUI implements Listener {
                 color + "&l" + CalendarManager.DAYS_RU[i] + (isToday ? " &a&l(СЕГОДНЯ)" : ""), lore);
     }
 
-    // ───────────────────────── Меню дня ─────────────────────────
-
     private void openDayMenu(Player player, String day) {
         int di = Arrays.asList(CalendarManager.DAYS).indexOf(day);
         AdminHolder holder = new AdminHolder(Type.DAY, day);
@@ -164,8 +150,6 @@ public class CalendarAdminGUI implements Listener {
         GuiUtil.fillEmpty(inv, Material.BLACK_STAINED_GLASS_PANE);
         player.openInventory(inv);
     }
-
-    // ───────────────────────── Редактор события ─────────────────────────
 
     private void startEdit(Player player, String day, int index) {
         List<CalendarManager.BossEvent> events = calendar.getEvents(day);
@@ -203,12 +187,10 @@ public class CalendarAdminGUI implements Listener {
 
         GuiUtil.frame(inv, Material.PURPLE_STAINED_GLASS_PANE, Material.MAGENTA_STAINED_GLASS_PANE);
 
-        // сводка
         inv.setItem(4, GuiUtil.glow(GuiUtil.item(Material.CHEST, "&e&l" + s.time() + " &7— " + calendar.getBossName(s.boss),
                 "&7День: &f" + CalendarManager.DAYS_RU[di],
                 "&7Сообщение: &f" + shorten(s.message))));
 
-        // время
         inv.setItem(10, GuiUtil.item(Material.LIME_STAINED_GLASS_PANE, "&a⬆ +1 час"));
         inv.setItem(11, GuiUtil.item(Material.LIME_STAINED_GLASS_PANE, "&a⬆ +10 минут"));
         inv.setItem(12, GuiUtil.item(Material.LIME_STAINED_GLASS_PANE, "&a⬆ +1 минута"));
@@ -218,7 +200,6 @@ public class CalendarAdminGUI implements Listener {
         inv.setItem(29, GuiUtil.item(Material.RED_STAINED_GLASS_PANE, "&c⬇ −10 минут"));
         inv.setItem(30, GuiUtil.item(Material.RED_STAINED_GLASS_PANE, "&c⬇ −1 минута"));
 
-        // боссы
         List<String> ids = bossIds();
         int pages = Math.max(1, (ids.size() + BOSS_SLOTS.length - 1) / BOSS_SLOTS.length);
         s.bossPage = Math.max(0, Math.min(s.bossPage, pages - 1));
@@ -239,7 +220,6 @@ public class CalendarAdminGUI implements Listener {
         if (s.bossPage > 0) inv.setItem(13, GuiUtil.item(Material.ARROW, "&e◀ Предыдущие боссы"));
         if (s.bossPage < pages - 1) inv.setItem(31, GuiUtil.item(Material.ARROW, "&eСледующие боссы ▶"));
 
-        // сообщение
         inv.setItem(39, GuiUtil.item(Material.WRITABLE_BOOK, "&e&l📝 Сообщение",
                 "&7" + s.message,
                 "",
@@ -247,7 +227,6 @@ public class CalendarAdminGUI implements Listener {
                 "&6ПКМ: &fсбросить на стандартное",
                 "&8Можно использовать {BOSS} и {TIME}"));
 
-        // кнопки
         inv.setItem(45, GuiUtil.item(Material.BARRIER, "&c&l❌ Отмена", "&7Выйти без сохранения"));
         inv.setItem(49, GuiUtil.item(Material.LIME_WOOL, "&a&l✅ Сохранить"));
         if (s.index >= 0) inv.setItem(53, GuiUtil.item(Material.RED_WOOL, "&c&l🗑 Удалить событие"));
@@ -283,8 +262,6 @@ public class CalendarAdminGUI implements Listener {
         openDayMenu(player, s.day);
     }
 
-    // ───────────────────────── Подтверждение ─────────────────────────
-
     private void openConfirm(Player player, String text, Runnable yes, Runnable no) {
         AdminHolder holder = new AdminHolder(Type.CONFIRM, null);
         holder.onYes = yes;
@@ -298,13 +275,11 @@ public class CalendarAdminGUI implements Listener {
         player.openInventory(inv);
     }
 
-    // ───────────────────────── Клики ─────────────────────────
-
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Inventory top = event.getView().getTopInventory();
         if (!(top.getHolder() instanceof AdminHolder holder)) return;
-        event.setCancelled(true);                                  // ничего нельзя вынести или положить
+        event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() != top) return;
 
@@ -388,7 +363,6 @@ public class CalendarAdminGUI implements Listener {
         EditSession s = sessions.get(player.getUniqueId());
         if (s == null) { openMainMenu(player); return; }
 
-        // время
         int delta = switch (slot) {
             case 10 -> 60;
             case 11 -> 10;
@@ -405,7 +379,6 @@ public class CalendarAdminGUI implements Listener {
             return;
         }
 
-        // выбор босса
         for (int k = 0; k < BOSS_SLOTS.length; k++) {
             if (slot == BOSS_SLOTS[k]) {
                 List<String> ids = bossIds();
@@ -454,13 +427,11 @@ public class CalendarAdminGUI implements Listener {
         }
     }
 
-    // ───────────────────────── Ввод сообщения в чате ─────────────────────────
-
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncChatEvent event) {
         UUID id = event.getPlayer().getUniqueId();
         if (!awaitingChat.contains(id)) return;
-        event.setCancelled(true);                                  // сообщение не уходит в общий чат
+        event.setCancelled(true);
         String text = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
 
         Bukkit.getScheduler().runTask(plugin, () -> {
@@ -487,8 +458,6 @@ public class CalendarAdminGUI implements Listener {
         sessions.remove(id);
         awaitingChat.remove(id);
     }
-
-    // ───────────────────────── Вспомогательное ─────────────────────────
 
     private void click(Player player) {
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.1f);

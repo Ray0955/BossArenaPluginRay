@@ -133,4 +133,173 @@ public class CalendarManager implements Listener {
     public String todayKey() { return now().getDayOfWeek().name().toLowerCase(); }
 
     private void startScheduler() {
-        Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20
+        Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+    }
+
+    private void tick() {
+        if (!plugin.getConfig().getBoolean("auto_spawn.enabled", true)) return;
+        if (!plugin.getConfig().getBoolean("calendar.enabled", true)) return;
+
+        ZonedDateTime now = now();
+        LocalDate today = now.toLocalDate();
+        boolean announce = plugin.getConfig().getBoolean("auto_spawn.announce_before_spawn", true);
+        int announceSec = Math.max(1, plugin.getConfig().getInt("auto_spawn.announce_time", 30));
+
+        String todayStr = today.toString();
+        announced.removeIf(k -> k.compareTo(todayStr) < 0);
+        spawned.removeIf(k -> k.compareTo(todayStr) < 0);
+
+        for (int offset = 0; offset <= 1; offset++) {
+            LocalDate date = today.plusDays(offset);
+            String dayKey = date.getDayOfWeek().name().toLowerCase();
+            for (BossEvent ev : new ArrayList<>(getEvents(dayKey))) {
+                String time = normalizeTime(ev.time);
+                if (time == null) continue;
+                ZonedDateTime at = ZonedDateTime.of(date, LocalTime.parse(time, TIME_OUT), getZone());
+                long secondsUntil = ChronoUnit.SECONDS.between(now, at);
+                String key = date + "_" + time + "_" + ev.boss;
+
+                if (announce && secondsUntil > 0 && secondsUntil <= announceSec && announced.add(key)) {
+                    announceEvent(ev, (int) secondsUntil);
+                }
+                if (offset == 0 && secondsUntil <= 0 && secondsUntil > -60 && spawned.add(key)) {
+                    spawnEvent(ev);
+                }
+            }
+        }
+    }
+
+    private void announceEvent(BossEvent ev, int seconds) {
+        Bukkit.broadcast(Component.text(GuiUtil.color(formatMessage(ev))));
+        Title title = Title.title(
+                GuiUtil.title(getBossName(ev.boss)),
+                GuiUtil.title("&eпоявится через &6&l" + seconds + " &eсек!"),
+                Title.Times.times(Duration.ofMillis(400), Duration.ofSeconds(3), Duration.ofMillis(600)));
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.showTitle(title);
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1f);
+        }
+    }
+
+    private void spawnEvent(BossEvent ev) {
+        if (bossManager.isBossAlive()) bossManager.forceBossDespawn();
+        boolean ok = bossManager.spawnBossById(ev.boss, false);
+        if (!ok) {
+            plugin.getLogger().warning("❌ Календарь: не удалось заспавнить босса '" + ev.boss
+                    + "' (нет такого босса, неверная точка спавна или мир не загружен).");
+            return;
+        }
+        String message = plugin.getConfig().getString("messages.calendar_spawned",
+                "&a✅ Босс {BOSS} появился!");
+        message = message.replace("{BOSS}", getBossName(ev.boss));
+        Bukkit.broadcast(Component.text(GuiUtil.color(message)));
+    }
+
+    private String formatMessage(BossEvent ev) {
+        String msg = (ev.message == null || ev.message.isBlank()) ? DEFAULT_MESSAGE : ev.message;
+        return msg.replace("{BOSS}", getBossName(ev.boss)).replace("{TIME}", ev.time);
+    }
+
+    public String getBossName(String bossId) {
+        String name = plugin.getConfig().getString("bosses." + bossId + ".boss.name");
+        return name == null ? bossId : ChatColor.translateAlternateColorCodes('&', name);
+    }
+
+    private static class CalendarHolder implements InventoryHolder {
+        Inventory inventory;
+        @Override public Inventory getInventory() { return inventory; }
+    }
+
+    public void openCalendar(Player player) {
+        String title = plugin.getConfig().getString("calendar.title", "&6&l📅 Календарь событий");
+        CalendarHolder holder = new CalendarHolder();
+        Inventory inv = Bukkit.createInventory(holder, 54, GuiUtil.title(title));
+        holder.inventory = inv;
+
+        ZonedDateTime now = now();
+        DayOfWeek today = now.getDayOfWeek();
+        DayOfWeek tomorrow = today.plus(1);
+
+        inv.setItem(0, GuiUtil.item(Material.LIME_WOOL, "&a&l📅 Сегодня &7— " + DAYS_RU[today.getValue() - 1],
+                "&7Сейчас: &f" + now.format(TIME_OUT)));
+        inv.setItem(4, GuiUtil.item(Material.YELLOW_WOOL, "&e&l📅 Завтра &7— " + DAYS_RU[tomorrow.getValue() - 1]));
+        inv.setItem(8, GuiUtil.item(Material.GRAY_WOOL, "&7📅 Будущие события"));
+
+        fillDay(inv, today, 0, 9, 9);
+        fillDay(inv, tomorrow, 1, 18, 9);
+
+        int slot = 27;
+        boolean any = false;
+        for (int i = 2; i <= 7 && slot < 54; i++) {
+            DayOfWeek d = today.plus(i);
+            for (BossEvent ev : getEvents(d.name().toLowerCase())) {
+                if (slot >= 54) break;
+                inv.setItem(slot++, eventItem(ev, i, d));
+                any = true;
+            }
+        }
+        if (!any) inv.setItem(27, GuiUtil.item(Material.BARRIER, "&7Нет событий"));
+
+        GuiUtil.fillEmpty(inv, Material.BLACK_STAINED_GLASS_PANE);
+        player.openInventory(inv);
+    }
+
+    private void fillDay(Inventory inv, DayOfWeek day, int offset, int startSlot, int max) {
+        List<BossEvent> events = getEvents(day.name().toLowerCase());
+        int slot = startSlot;
+        for (BossEvent ev : events) {
+            if (slot >= startSlot + max) break;
+            inv.setItem(slot++, eventItem(ev, offset, day));
+        }
+        if (events.isEmpty()) inv.setItem(startSlot, GuiUtil.item(Material.BARRIER, "&7Нет событий"));
+    }
+
+    private ItemStack eventItem(BossEvent ev, int offset, DayOfWeek day) {
+        String bossName = getBossName(ev.boss);
+        String color = offset == 0 ? "&a" : offset == 1 ? "&e" : "&7";
+        List<String> lore = new ArrayList<>();
+        lore.add("&7День: &f" + DAYS_RU[day.getValue() - 1]);
+        lore.add("&7Время: &f" + ev.time);
+        lore.add("&7Босс: &f" + bossName);
+        lore.add("&7Появится: &f" + until(offset, ev.time));
+        return GuiUtil.item(Material.CHEST,
+                color + (offset >= 2 ? DAYS_SHORT[day.getValue() - 1] + " " : "") + ev.time + " &7— " + bossName, lore);
+    }
+
+    private String until(int offset, String time) {
+        String t = normalizeTime(time);
+        if (t == null) return "&8неизвестно";
+        ZonedDateTime now = now();
+        ZonedDateTime target = ZonedDateTime.of(now.toLocalDate().plusDays(offset), LocalTime.parse(t, TIME_OUT), getZone());
+        long mins = Duration.between(now, target).toMinutes();
+        if (mins < 0) return "&8сегодня уже было";
+        long d = mins / 1440, h = (mins % 1440) / 60, m = mins % 60;
+        StringBuilder sb = new StringBuilder("через ");
+        if (d > 0) sb.append(d).append(" дн ");
+        if (h > 0) sb.append(h).append(" ч ");
+        sb.append(m).append(" мин");
+        return sb.toString();
+    }
+
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof CalendarHolder) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof CalendarHolder) event.setCancelled(true);
+    }
+
+    public static class BossEvent {
+        public String time;
+        public String boss;
+        public String message;
+
+        public BossEvent(String time, String boss, String message) {
+            this.time = time;
+            this.boss = boss;
+            this.message = message;
+        }
+    }
+}

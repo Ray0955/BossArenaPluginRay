@@ -10,9 +10,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
-/**
- * Ротация боссов (Ray095).
- */
 public class BossRotationManager {
 
     private final JavaPlugin plugin;

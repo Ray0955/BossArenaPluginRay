@@ -1,6 +1,6 @@
 #BossArena plugin Minecraft by Ray095 
 #Плагин на бета тестирование. Возможные ошибки.
-# BossArena
+#Плагин разрабатываю с 2026 года.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21.4-green)

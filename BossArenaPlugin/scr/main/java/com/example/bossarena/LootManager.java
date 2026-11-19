@@ -7,31 +7,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
-/**
- * Генерация лута (Ray095).
- *
- * Формат строки global_loot:
- *   МАТЕРИАЛ:МИН-МАКС:ШАНС   - случайное количество (например DIAMOND:10-20:40.0)
- *   МАТЕРИАЛ:КОЛИЧЕСТВО:ШАНС - ровно столько (например IRON_SWORD:1:20.0)
- *   custom:ID:КОЛИЧЕСТВО:ШАНС - кастомный предмет
- *
- * Если количество больше максимального стака, оно делится на стаки:
- * 128 камня = 2 стака по 64, 74 = 64 + 10.
- */
 public class LootManager {
 
     private final JavaPlugin plugin;
     private final List<LootItem> lootItems = new ArrayList<>();
     private final List<LootItem> customLootItems = new ArrayList<>();
-    // шанс по материалу - нужен, чтобы при нехватке слотов убирать самое обычное, а не редкое
     private final Map<Material, Double> materialChance = new HashMap<>();
     private final Random random = new Random();
     private final CustomItemsManager customItemsManager;
 
-    // старые/ошибочные названия из конфига -> правильные
-    private static final Map<String, String> ALIASES = Map.of(
-            "SEEDS", "WHEAT_SEEDS"
-    );
+    private static final Map<String, String> ALIASES = Map.of("SEEDS", "WHEAT_SEEDS");
 
     public LootManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -79,11 +64,8 @@ public class LootManager {
         }
     }
 
-    private void warnBad(String entry) {
-        plugin.getLogger().warning("❌ Лут: неверный формат строки: " + entry);
-    }
+    private void warnBad(String entry) { plugin.getLogger().warning("❌ Лут: неверный формат строки: " + entry); }
 
-    /** "64-128" -> {64,128}; "1" -> {1,1}. */
     private int[] parseAmount(String s) {
         s = s.trim();
         int min, max;
@@ -91,9 +73,7 @@ public class LootManager {
             String[] r = s.split("-");
             min = Integer.parseInt(r[0].trim());
             max = Integer.parseInt(r[1].trim());
-        } else {
-            min = max = Integer.parseInt(s);
-        }
+        } else min = max = Integer.parseInt(s);
         if (min < 1) min = 1;
         if (max < min) max = min;
         return new int[]{min, max};
@@ -101,10 +81,6 @@ public class LootManager {
 
     public List<ItemStack> generateLoot() {
         List<ItemStack> rewards = new ArrayList<>();
-
-        // Предметы с шансом 100% - "гарантированные". Их несколько, и чтобы сундуки не были
-        // одинаковыми, каждый раз выбирается случайная часть (chest.guaranteed_min/max).
-        // Если guaranteed_max не задан или <= 0, выпадают все, как раньше.
         List<LootItem> guaranteed = new ArrayList<>();
         for (LootItem item : lootItems) {
             if (item.chance >= 100.0) { guaranteed.add(item); continue; }
@@ -113,11 +89,10 @@ public class LootManager {
                 addSplit(rewards, item.material, amount);
             }
         }
-
         int gMax = plugin.getConfig().getInt("chest.guaranteed_max", 0);
         int gMin = plugin.getConfig().getInt("chest.guaranteed_min", 1);
         int take = guaranteed.size();
-        if (gMax > 0 && guaranteed.size() > 0) {
+        if (gMax > 0 && !guaranteed.isEmpty()) {
             gMax = Math.min(gMax, guaranteed.size());
             gMin = Math.max(1, Math.min(gMin, gMax));
             take = gMin + random.nextInt(gMax - gMin + 1);
@@ -128,25 +103,16 @@ public class LootManager {
             int amount = item.minAmount + random.nextInt(item.maxAmount - item.minAmount + 1);
             addSplit(rewards, item.material, amount);
         }
-
         List<LootItem> droppedCustom = new ArrayList<>();
-        for (LootItem item : customLootItems) {
-            if (random.nextDouble() * 100 <= item.chance) droppedCustom.add(item);
-        }
-
+        for (LootItem item : customLootItems) if (random.nextDouble() * 100 <= item.chance) droppedCustom.add(item);
         if (!droppedCustom.isEmpty()) {
             LootItem selected = droppedCustom.get(random.nextInt(droppedCustom.size()));
             ItemStack customStack = customItemsManager.createItem(selected.itemId);
-            if (customStack != null) {
-                customStack.setAmount(1);
-                rewards.add(customStack);
-            }
+            if (customStack != null) { customStack.setAmount(1); rewards.add(customStack); }
         }
-
         return rewards;
     }
 
-    /** Делит количество на стаки по максимальному размеру стака материала: 74 -> 64 + 10. */
     private void addSplit(List<ItemStack> out, Material material, int amount) {
         int maxStack = Math.max(1, material.getMaxStackSize());
         while (amount > 0) {
@@ -160,27 +126,18 @@ public class LootManager {
         int maxSlots = plugin.getConfig().getInt("chest.max_slots", 35);
         int minEmptySlots = plugin.getConfig().getInt("chest.min_empty_slots", 10);
         chest.clear();
-
         int slotsToUse = Math.min(maxSlots, chest.getSize()) - minEmptySlots;
         if (slotsToUse <= 0) return;
-
-        // Если стаков больше, чем слотов, убираем самое обычное:
-        // кастомные предметы и редкие остаются, лишними становятся блоки с шансом 100%
         List<ItemStack> toPlace = new ArrayList<>(items);
         Collections.shuffle(toPlace, random);
         toPlace.sort(Comparator.comparingDouble(this::rarityOf));
         if (toPlace.size() > slotsToUse) toPlace = new ArrayList<>(toPlace.subList(0, slotsToUse));
-
         List<Integer> slots = new ArrayList<>();
         for (int i = 0; i < chest.getSize(); i++) slots.add(i);
         Collections.shuffle(slots, random);
-
-        for (int i = 0; i < toPlace.size() && i < slots.size(); i++) {
-            chest.setItem(slots.get(i), toPlace.get(i));
-        }
+        for (int i = 0; i < toPlace.size() && i < slots.size(); i++) chest.setItem(slots.get(i), toPlace.get(i));
     }
 
-    /** Чем меньше число, тем реже предмет (кастомные всегда в приоритете). */
     private double rarityOf(ItemStack stack) {
         if (customItemsManager.isCustomItem(stack)) return -1.0;
         return materialChance.getOrDefault(stack.getType(), 100.0);

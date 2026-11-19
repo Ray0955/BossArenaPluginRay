@@ -1,0 +1,79 @@
+name: BossArena
+version: 1.0.0
+main: com.example.bossarena.BossArena
+api-version: "1.21"
+author: Ray095
+description: PvE-плагин с боссами, календарём и кастомными предметами
+depend: [Vault]
+softdepend: [PlaceholderAPI]
+
+commands:
+  boss:
+    description: Запустить арену с установленной точки
+    usage: /boss
+    permission: bossarena.admin
+  setboss:
+    description: Установить точку спавна для босса
+    usage: /setboss <id_босса>
+    permission: bossarena.admin
+  bosslist:
+    description: Показать список всех боссов
+    usage: /bosslist
+    permission: bossarena.admin
+  damage:
+    description: Показать ваш урон по боссу
+    usage: /damage
+  givecustom:
+    description: Выдать кастомный предмет игроку
+    usage: /givecustom <игрок> <id_предмета> [количество]
+    permission: bossarena.admin
+  customitems:
+    description: Показать список кастомных предметов
+    usage: /customitems
+    permission: bossarena.admin
+  reloadcustom:
+    description: Перезагрузить кастомные предметы
+    usage: /reloadcustom
+    permission: bossarena.admin
+  givebag:
+    description: Выдать сумку кастомных предметов
+    usage: /givebag <игрок> [кол-во]
+    permission: bossarena.admin
+  calendar:
+    description: Показать календарь событий
+    usage: /calendar
+  calendaradmin:
+    description: Открыть админ-календарь
+    usage: /calendaradmin
+    permission: bossarena.admin
+  bossnpc:
+    description: Управление NPC-витриной ресурсов
+    usage: /bossnpc <set|remove|reload|disable|enable|status>
+    permission: bossarena.admin
+    aliases: [bnpc]
+  bossarena:
+    description: Управление аренами боссов
+    usage: /bossarena <build|remove|info|tp|sync>
+    permission: bossarena.admin
+
+permissions:
+  bossarena.admin:
+    description: Полный доступ ко всем админ командам
+    default: op
+    children:
+      bossarena.npc.use: true
+      bossarena.npc.use.disabled: true
+      bossarena.npc.bypass: true
+      bossarena.arena.bypass: true
+  bossarena.npc.use:
+    description: Разрешает открывать NPC-витрину
+    default: true
+  bossarena.npc.use.disabled:
+    description: Разрешает открывать NPC-витрину даже когда она отключена
+    default: op
+  bossarena.npc.bypass:
+    description: Обход всех ограничений NPC
+    default: op
+  bossarena.arena.bypass:
+    description: Обход защиты арен
+    default: op

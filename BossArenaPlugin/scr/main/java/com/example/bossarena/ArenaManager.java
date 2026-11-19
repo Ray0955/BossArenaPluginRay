@@ -31,19 +31,6 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
-/**
- * Арены боссов: по одной на каждый мир (Ray095). Команды: /bossarena build|remove|info|tp|sync
- *
- *  - Обычный мир: «Кольцо времени» (белая цитадель-циферблат, над ареной гигантское разбитое кольцо);
- *  - Нижний мир: «Кальдера» (кратер вулкана с рёбрами гигантского скелета, лавопады, багровые грибы);
- *  - Энд: «Змей эндера» (тёмная арена, вокруг которой свернулся гигантский змей, парящие кристаллы).
- *
- * Боссы используют арену того мира, в котором они живут (по типу или required_environment):
- * зомби, скелет и паук - обычную; пиглин и Магма-куб - Нижнего мира; Дракон - Энда.
- *
- * Стройка идёт порциями по тикам, старые блоки запоминаются для отката (до перезапуска сервера),
- * арены защищены от ломания и взрывов (в том числе от разрушений драконом).
- */
 public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
 
     private enum Style {
@@ -54,10 +41,8 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
 
     private static final String[] FACING_RU = {"север", "восток", "юг", "запад"};
     private static final String[] DEBRIS = {"QUARTZ_BLOCK", "PURPUR_BLOCK", "AMETHYST_BLOCK", "SMOOTH_QUARTZ"};
-
     private static final int MIN_RADIUS = 24;
     private static final int MAX_RADIUS = 44;
-
     private static final World.Environment[] ENVS = {World.Environment.NORMAL, World.Environment.NETHER, World.Environment.THE_END};
 
     private static World.Environment envOf(World w) {
@@ -84,7 +69,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         };
     }
 
-    /** Набор блоков для строений. */
     private static class Pal {
         String[] white, floor;
         String qb, seat, accent, lamp, glass, dio, rod, pillar, roofA, roofB, chiseled, slab, stairA, stairB, ame;
@@ -112,7 +96,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         final World.Environment env;
         final Style style;
         final World world;
-        final int cx, y0, cz, radius, facing;     // facing: 0 север, 1 восток, 2 юг, 3 запад (куда "смотрит" главная деталь арены)
+        final int cx, y0, cz, radius, facing;
 
         Arena(World.Environment env, World world, int cx, int y0, int cz, int radius, int facing) {
             this.env = env;
@@ -150,8 +134,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         startAmbient();
     }
 
-    // ───────────────────────── Данные арен ─────────────────────────
-
     private void loadArenas() {
         arenas.clear();
         var c = plugin.getConfig();
@@ -166,7 +148,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                         Math.floorMod(s.getInt("facing", 0), 4)));
             }
         }
-        // старый формат: одна арена обычного мира
         if (!arenas.containsKey(World.Environment.NORMAL) && c.getString("arena.place.world") != null) {
             World w = Bukkit.getWorld(c.getString("arena.place.world"));
             if (w != null) {
@@ -198,14 +179,11 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         plugin.saveConfig();
     }
 
-    // ───────────────────────── Какие боссы используют арену ─────────────────────────
-
     private World.Environment bossEnv(BossRotationManager.BossData data) {
         World.Environment req = bossManager.getRequiredEnvironment(data);
         return req == null ? World.Environment.NORMAL : (req == World.Environment.CUSTOM ? World.Environment.NORMAL : req);
     }
 
-    /** null = босс использует арену этого мира, иначе причина, почему нет. */
     private String refuseReason(BossRotationManager.BossData data, World.Environment env) {
         if (data.bossType == EntityType.MAGMA_CUBE && env == World.Environment.NORMAL) return "Магма-куб живёт в Нижнем мире";
         World.Environment be = bossEnv(data);
@@ -224,7 +202,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         return list;
     }
 
-    /** Центр арены становится точкой спавна всех боссов этого мира. */
     private int applyBossSpawns(Arena a) {
         var c = plugin.getConfig();
         int count = 0;
@@ -251,9 +228,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         return sb.length() == 0 ? ChatColor.GRAY + "(подходящих боссов нет)" : sb.toString();
     }
 
-    // ───────────────────────── Команды ─────────────────────────
-
-    /** Мир из аргумента (normal / nether / end) или мир игрока. */
     private World.Environment envFromArg(CommandSender sender, String[] args, int idx) {
         if (args.length > idx) {
             switch (args[idx].toLowerCase()) {
@@ -295,11 +269,11 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
     }
 
     private static int facingFromYaw(float yaw) {
-        float y = ((yaw % 360) + 360) % 360;       // 0 юг, 90 запад, 180 север, 270 восток
-        if (y >= 135 && y < 225) return 0;          // север
-        if (y >= 225 && y < 315) return 1;          // восток
-        if (y >= 315 || y < 45) return 2;           // юг
-        return 3;                                   // запад
+        float y = ((yaw % 360) + 360) % 360;
+        if (y >= 135 && y < 225) return 0;
+        if (y >= 225 && y < 315) return 1;
+        if (y >= 315 || y < 45) return 2;
+        return 3;
     }
 
     private void cmdBuild(CommandSender sender, String[] args) {
@@ -460,8 +434,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         return out;
     }
 
-    // ───────────────────────── Стройка и откат (порциями по тикам) ─────────────────────────
-
     private int perTick() {
         return Math.max(200, Math.min(20000, plugin.getConfig().getInt("arena.blocks_per_tick", 1500)));
     }
@@ -549,8 +521,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         }.runTaskTimer(plugin, 1L, 1L);
     }
 
-    // ───────────────────────── Атмосфера ─────────────────────────
-
     private void startAmbient() {
         ambientTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Arena a : arenas.values()) {
@@ -576,8 +546,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }, 40L, 10L);
     }
-
-    // ───────────────────────── Защита арен ─────────────────────────
 
     private boolean inArena(Location l) {
         if (l == null || l.getWorld() == null) return false;
@@ -607,7 +575,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         if (inArena(e.getBlock().getLocation()) && !e.getPlayer().hasPermission("bossarena.arena.bypass")) e.setCancelled(true);
     }
 
-    /** Заодно защищает арену от разрушений Драконом Края (он ломает блоки через это событие). */
     @EventHandler(priority = EventPriority.HIGH)
     public void onExplode(EntityExplodeEvent e) {
         e.blockList().removeIf(b -> inArena(b.getLocation()));
@@ -622,8 +589,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         if (ambientTask != null) { ambientTask.cancel(); ambientTask = null; }
     }
 
-    // ───────────────────────── Упаковка координат ─────────────────────────
-
     private static long pack(int x, int y, int z) {
         return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | ((y + 2048) & 0xFFF);
     }
@@ -631,17 +596,10 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
     private static int unpackZ(long k) { return (int) ((k << 26) >> 38); }
     private static int unpackY(long k) { return (int) (k & 0xFFF) - 2048; }
 
-    // ═════════════════════════ Планировщик арены ═════════════════════════
-
-    /**
-     * Строит в памяти план "какой блок где", потом он ставится порциями.
-     * Методы с "L" (putL, supportL) работают в локальных координатах: главная деталь арены
-     * (голова змея и т.п.) всегда "на севере", потом всё поворачивается по взгляду игрока.
-     */
     private class Planner {
         final Arena a;
         final World world;
-        final int cx, y0, cz, R, F;       // F = радиус боевой площадки
+        final int cx, y0, cz, R, F;
         final Map<Long, BlockData> plan = new LinkedHashMap<>();
         final Map<String, BlockData> cache = new HashMap<>();
         final Set<Long> used = new HashSet<>();
@@ -660,8 +618,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             this.R = arena.radius;
             this.F = arena.style == Style.CALDERA ? R - 8 : R - 9;
         }
-
-        // ---- помощники ----
 
         BlockData blk(String name) {
             return cache.computeIfAbsent(name, n -> {
@@ -690,7 +646,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         }
         void putL(int lx, int ly, int lz, String material) { putL(lx, ly, lz, blk(material)); }
 
-        /** Подстилаем основание под постройку до твёрдой земли (не больше 14 блоков вниз). */
         void support(int x, int z, String mat) {
             for (int k = 0; k <= 14; k++) {
                 if (k > 0 && world.getBlockAt(x, y0 - k, z).getType().isSolid()) break;
@@ -710,7 +665,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
         boolean corridor(int dx, int dz) { return Math.abs(dx) <= 2 || Math.abs(dz) <= 2; }
 
         BlockData stairsOut(String material, int dx, int dz) {
-            String facing = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? "east" : "west") : (dz > 0 ? "south" : "north");   // ступени растут наружу
+            String facing = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? "east" : "west") : (dz > 0 ? "south" : "north");
             return dat("minecraft:" + material.toLowerCase() + "[facing=" + facing + ",half=bottom]");
         }
 
@@ -726,8 +681,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             return null;
         }
 
-        // ---- генерация ----
-
         Map<Long, BlockData> generate() {
             switch (a.style) {
                 case HALO -> { pal = LIGHT; clearH = 24; citadel(); halo(); }
@@ -736,8 +689,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
             return plan;
         }
-
-        // ═════════ Цитадель-циферблат (Кольцо времени и Змей эндера) ═════════
 
         void citadel() {
             groundAndFloor();
@@ -756,23 +707,22 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             return along >= 3.8 && along <= len && perp < 0.6;
         }
 
-        /** Пол в виде циферблата: светящиеся стрелки, часовые метки, цветные кольца. */
         String floorBlock(int dx, int dz, double d) {
-            if (d <= 3.4) {                                           // помост босса
+            if (d <= 3.4) {
                 if (d < 1.5) return "CRYING_OBSIDIAN";
                 if (d < 2.6) return pal.accent;
                 return pal.qb;
             }
-            if (d >= 5.0 && d <= 5.9) return pal.ame;                 // кольцо призыва
+            if (d >= 5.0 && d <= 5.9) return pal.ame;
             if (d > F) return corridor(dx, dz) ? pal.qb : pick(pal.white);
-            if (onHand(dx, dz, Math.toRadians(-60), 12) || onHand(dx, dz, Math.toRadians(-120), 8)) return "SEA_LANTERN";   // стрелки
+            if (onHand(dx, dz, Math.toRadians(-60), 12) || onHand(dx, dz, Math.toRadians(-120), 8)) return "SEA_LANTERN";
             double theta = angle(dx, dz);
             double quarter = Math.PI / 2, hour = Math.PI / 6;
             double devMajor = Math.abs(theta - Math.round(theta / quarter) * quarter) * d;
             double devMinor = Math.abs(theta - Math.round(theta / hour) * hour) * d;
-            if (d >= F - 8 && d <= F - 2.6 && devMajor < 1.0) return pal.accent;    // 12, 3, 6, 9
-            if (d >= F - 6 && d <= F - 2.6 && devMinor < 0.6) return pal.accent;    // остальные часы
-            if (d >= F - 1.6 && d <= F - 0.6) return pal.accent;                    // внешняя кайма
+            if (d >= F - 8 && d <= F - 2.6 && devMajor < 1.0) return pal.accent;
+            if (d >= F - 6 && d <= F - 2.6 && devMinor < 0.6) return pal.accent;
+            if (d >= F - 1.6 && d <= F - 0.6) return pal.accent;
             if (d > F - 0.6) return pal.qb;
             if ((d > 8.0 && d < 8.8) || (d > 10.0 && d < 10.5)) return pal.accent;
             return pick(pal.floor);
@@ -788,7 +738,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                     for (int y = y0 + clearH; y > y0; y--) put(x, y, z, air);
                     String fb = floorBlock(dx, dz, d);
                     put(x, y0, z, fb);
-                    if (d <= 3.4) put(x, y0 + 1, z, fb);              // помост выше пола на блок
+                    if (d <= 3.4) put(x, y0 + 1, z, fb);
                     for (int k = 1; k <= 3; k++) put(x, y0 - k, z, "STONE_BRICKS");
                     for (int k = 4; k <= 14; k++) {
                         Block b = world.getBlockAt(x, y0 - k, z);
@@ -799,7 +749,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        /** Низкая ограда между полем боя и трибунами (1.5 блока, не перепрыгнуть), проходы у ворот. */
         void barrier() {
             for (int dx = -R; dx <= R; dx++) {
                 for (int dz = -R; dz <= R; dz++) {
@@ -810,7 +759,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        /** Три яруса трибун: акцентный, основной, акцентный. */
         void tribunes() {
             String[] stairs = {pal.stairA, pal.stairB, pal.stairA};
             for (int dx = -R; dx <= R; dx++) {
@@ -827,12 +775,12 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
 
         void walls() {
             double slitStep = 2 * Math.PI / 32;
-            List<Double> breaks = new ArrayList<>();                       // разрушенные участки стены
+            List<Double> breaks = new ArrayList<>();
             for (int i = 0; i < 5; i++) {
                 for (int t = 0; t < 10; t++) {
                     double ang = rnd.nextDouble() * 2 * Math.PI;
                     double toAxis = Math.abs(ang - Math.round(ang / (Math.PI / 2)) * (Math.PI / 2));
-                    if (toAxis > 0.28) { breaks.add(ang); break; }          // не ломаем ворота
+                    if (toAxis > 0.28) { breaks.add(ang); break; }
                 }
             }
             for (int dx = -R; dx <= R; dx++) {
@@ -844,7 +792,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                     boolean gate = (Math.abs(dx) <= 2 && Math.abs(dz) > R - 3) || (Math.abs(dz) <= 2 && Math.abs(dx) > R - 3);
                     double ang = angle(dx, dz);
                     double dev = Math.abs(ang - Math.round(ang / slitStep) * slitStep) * R;
-                    boolean slit = !gate && dev < 0.7;                       // бойницы
+                    boolean slit = !gate && dev < 0.7;
                     int hh = wallH;
                     boolean broken = false;
                     for (double b : breaks) {
@@ -854,18 +802,18 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                     }
                     for (int y = y0 + 1; y <= y0 + hh; y++) {
                         int rel = y - y0;
-                        if (gate && rel <= 5) continue;                       // проём ворот
+                        if (gate && rel <= 5) continue;
                         if (slit && (rel == 5 || rel == 6)) continue;
                         String m;
-                        if (rel == 4) m = pal.accent;                          // цветной пояс
+                        if (rel == 4) m = pal.accent;
                         else if (rel >= 2 && rnd.nextDouble() < 0.03) m = "SEA_LANTERN";
                         else if (rel >= 2 && rnd.nextDouble() < 0.05) m = pal.chiseled;
                         else m = pick(pal.white);
                         put(x, y, z, m);
                     }
                     if (gate) put(x, y0, z, pal.qb);
-                    else if (!broken && Math.floorMod(dx + dz, 2) == 0) put(x, y0 + hh + 1, z, pick(pal.white));   // зубцы
-                    if (broken && rnd.nextDouble() < 0.12) {                  // обломки у разрушенной стены
+                    else if (!broken && Math.floorMod(dx + dz, 2) == 0) put(x, y0 + hh + 1, z, pick(pal.white));
+                    if (broken && rnd.nextDouble() < 0.12) {
                         put(x, y0 + 1, z, pal.seat);
                         if (rnd.nextBoolean()) put(x + (dx > 0 ? -1 : 1), y0 + 1, z, pal.slab);
                     }
@@ -873,7 +821,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        /** 8 высоких колонн у стены с огнями-маяками. */
         void pillars() {
             double pr = R - 2.5;
             for (int k = 0; k < 8; k++) {
@@ -903,7 +850,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        /** Кристаллы аметиста и обломки колонн на поле. */
         void groundProps() {
             for (int i = 0; i < 12; i++) {
                 int[] p = spot(11, F - 3);
@@ -920,7 +866,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        /** Круглая башня с пилястрами, окнами, балконом и шпилем. rr - радиус, h - высота стен. */
         void tower(int tlx, int tlz, int rr, int h, int rods) {
             for (int ix = -rr - 2; ix <= rr + 2; ix++) {
                 for (int iz = -rr - 2; iz <= rr + 2; iz++) {
@@ -962,7 +907,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             for (int j = 1; j <= rods; j++) putL(tlx, h + 2 + roof + j, tlz, pal.rod);
         }
 
-        /** Тонкие башенки по бокам всех четырёх ворот. */
         void turrets() {
             int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
             for (int[] dir : dirs) {
@@ -991,9 +935,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             put(x, y + n + 2, z, dat(spire));
         }
 
-        // ═════════ Кольцо времени (обычный мир) ═════════
-
-        /** Гигантское разбитое кольцо-циферблат над ареной, лучи света, стрелки времени и кристалл-ядро. */
         void halo() {
             int Y = 40;
             double Ro = R + 2, Ri = R - 3, mid = (Ri + Ro) / 2, hour = Math.PI / 6;
@@ -1007,7 +948,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                         if (Math.hypot(dx - mid * Math.cos(b[0]), dz - mid * Math.sin(b[0])) < b[1]) { bitten = true; break; }
                     }
                     if (bitten) {
-                        if (rnd.nextDouble() < 0.22) {                         // летящие обломки
+                        if (rnd.nextDouble() < 0.22) {
                             double push = 2 + rnd.nextDouble() * 6;
                             put(cx + (int) Math.round(dx + dx / r * push), y0 + Y + rnd.nextInt(12) - 5,
                                     cz + (int) Math.round(dz + dz / r * push), pick(DEBRIS));
@@ -1019,22 +960,22 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                             : (Math.abs(th - Math.round(th / hour) * hour) * r < 0.7 ? pal.chiseled : pick(pal.white));
                     for (int dy = -1; dy <= 1; dy++) put(cx + dx, y0 + Y + dy, cz + dz, m);
                     if (Math.abs(th - Math.round(th / (Math.PI / 2)) * (Math.PI / 2)) * r < 1.0 && r > Ri + 0.9 && r < Ro - 1) {
-                        put(cx + dx, y0 + Y + 2, cz + dz, pal.chiseled);       // крупные метки 12-3-6-9
+                        put(cx + dx, y0 + Y + 2, cz + dz, pal.chiseled);
                     }
-                    if (Math.floorMod(dx + dz, 3) == 0 && r < Ri + 2) put(cx + dx, y0 + Y - 2, cz + dz, "SEA_LANTERN");   // огни снизу
+                    if (Math.floorMod(dx + dz, 3) == 0 && r < Ri + 2) put(cx + dx, y0 + Y - 2, cz + dz, "SEA_LANTERN");
                 }
             }
-            for (int k = 0; k < 160; k++) {                                    // светящееся внутреннее кольцо
+            for (int k = 0; k < 160; k++) {
                 double ang = 2 * Math.PI * k / 160;
                 put(cx + (int) Math.round((Ri - 1.5) * Math.cos(ang)), y0 + Y, cz + (int) Math.round((Ri - 1.5) * Math.sin(ang)), "SEA_LANTERN");
             }
-            double pr = R - 2.5;                                               // лучи света от колонн к кольцу
+            double pr = R - 2.5;
             for (int k = 0; k < 8; k++) {
                 double ang = 2 * Math.PI * k / 8 + Math.PI / 8;
                 int px = cx + (int) Math.round(pr * Math.cos(ang)), pz = cz + (int) Math.round(pr * Math.sin(ang));
                 for (int y = y0 + 19; y < y0 + Y - 2; y++) put(px, y, pz, pal.rod);
             }
-            double[][] hands = {{18, Math.toRadians(-60), 31}, {11, Math.toRadians(-120), 32}};   // стрелки времени
+            double[][] hands = {{18, Math.toRadians(-60), 31}, {11, Math.toRadians(-120), 32}};
             for (double[] h : hands) {
                 for (int t = 3; t <= (int) h[0]; t++) {
                     put(cx + (int) Math.round(t * Math.cos(h[1])), y0 + (int) h[2], cz + (int) Math.round(t * Math.sin(h[1])), "SEA_LANTERN");
@@ -1043,8 +984,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             crystal(cx, y0 + 24, cz, 3, "LIGHT_BLUE_CONCRETE", "BLUE_CONCRETE", "SEA_LANTERN", "minecraft:amethyst_cluster[facing=up]");
             for (int y = y0 + 6; y < y0 + 20; y++) put(cx, y, cz, pal.rod);
         }
-
-        // ═════════ Змей эндера (Энд) ═════════
 
         String galaxy() {
             double t = rnd.nextDouble();
@@ -1057,9 +996,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             return "SEA_LANTERN";
         }
 
-        /** Гигантский змей: тело-спираль вокруг арены, голова на севере смотрит на центр. */
         void serpent() {
-            // расчищаем круг вокруг арены под змея
             int RC = R + 17;
             for (int dx = -RC; dx <= RC; dx++) {
                 for (int dz = -RC; dz <= RC; dz++) {
@@ -1092,12 +1029,12 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                             int[] w = a.rot((int) Math.round(lx) + dx, (int) Math.round(lz) + dz);
                             int wy = y0 + (int) Math.round(y) + dy;
                             if (!body.add(pack(cx + w[0], wy, cz + w[1]))) continue;
-                            String m = dy < -0.45 * r ? (band == 1 ? "POLISHED_BLACKSTONE" : "DEEPSLATE") : galaxy();   // брюхо с рёбрами
+                            String m = dy < -0.45 * r ? (band == 1 ? "POLISHED_BLACKSTONE" : "DEEPSLATE") : galaxy();
                             put(cx + w[0], wy, cz + w[1], m);
                         }
                     }
                 }
-                if (((int) arc) % 5 == 0 && rnd.nextDouble() < 0.8 && r > 1.6) {                                      // спинные шипы
+                if (((int) arc) % 5 == 0 && rnd.nextDouble() < 0.8 && r > 1.6) {
                     int kk = 2 + rnd.nextInt(2);
                     for (int k = 1; k < kk; k++) putL((int) Math.round(lx), (int) Math.round(y + r + k - 1) , (int) Math.round(lz), "OBSIDIAN");
                 }
@@ -1105,9 +1042,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             head(hlx, hlz, hy);
         }
 
-        /** Голова змея: стеклянный череп с галактикой, светящаяся пасть с зубами, глаза-чёрные дыры. */
         void head(double hlx, double hlz, double hy) {
-            // локальная система головы: a - вперёд (к центру арены, +z), b - вверх, c - вбок (+x)
             ellipsoid(hlx, hlz, hy, 2.0, 1.8, 0, 7.6, 4.6, 5.2, (d) -> d > 0.74 ? "WHITE_STAINED_GLASS" : galaxy());
             ellipsoid(hlx, hlz, hy, 3.2, -3.0, 0, 6.4, 1.9, 4.0, (d) -> rnd.nextBoolean() ? "BLACK_CONCRETE" : "OBSIDIAN");
             ellipsoid(hlx, hlz, hy, 1.0, -0.9, 0, 3.2, 1.1, 2.2, (d) -> rnd.nextDouble() < 0.2 ? "SEA_LANTERN" : "MAGENTA_CONCRETE");
@@ -1121,7 +1056,7 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             for (int c : new int[]{-1, 1}) {
                 for (int k = 0; k < 3; k++) putHead(hlx, hlz, hy, -5 - k, 3 + k, c * 2.2, "OBSIDIAN");
             }
-            for (int side : new int[]{-1, 1}) {                                // глаза-чёрные дыры
+            for (int side : new int[]{-1, 1}) {
                 for (int dx = -3; dx <= 3; dx++) {
                     for (int dy = -3; dy <= 3; dy++) {
                         for (int dz = -3; dz <= 3; dz++) {
@@ -1151,7 +1086,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        /** Парящие кристаллы эндера (подальше от змея и построек). */
         void bigCrystals() {
             int placed = 0, tries = 0;
             while (placed < 14 && tries < 400) {
@@ -1176,9 +1110,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
             }
         }
 
-        // ═════════ Кальдера (Нижний мир) ═════════
-
-        /** Кратер вулкана: чёрный камень и базальт, светящиеся трещины, скалы-стены, рёбра гигантского скелета. */
         void caldera() {
             int RC = R + 9;
             String[] basalts = {"BLACKSTONE", "BASALT", "SMOOTH_BASALT", "POLISHED_BASALT", "NETHERRACK"};
@@ -1190,26 +1121,24 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                     double d = Math.sqrt((double) dx * dx + (double) dz * dz);
                     if (d > RC + 0.5) continue;
                     int x = cx + dx, z = cz + dz;
-                    for (int y = y0 + 30; y > y0; y--) put(x, y, z, air);       // расчищаем пещеру под кратер
+                    for (int y = y0 + 30; y > y0; y--) put(x, y, z, air);
 
-                    // дно и основание
                     String fb;
                     if (d <= F + 0.5) {
                         if (d <= 7) {
                             fb = d >= 5 ? "CRYING_OBSIDIAN" : "OBSIDIAN";
                             if (d < 2.4) fb = "GLOWSTONE";
                         } else {
-                            boolean crack = Math.abs(Math.sin(0.5 * dx + 1.1 * Math.sin(0.33 * dz))) < 0.07 && d > 9;   // "лавовые" трещины (безопасные)
+                            boolean crack = Math.abs(Math.sin(0.5 * dx + 1.1 * Math.sin(0.33 * dz))) < 0.07 && d > 9;
                             fb = crack ? "SHROOMLIGHT" : pick(basalts);
                         }
                     } else {
                         fb = "BLACKSTONE";
                     }
                     put(x, y0, z, fb);
-                    if (d <= 4.0) put(x, y0 + 1, z, "OBSIDIAN");                // помост босса
+                    if (d <= 4.0) put(x, y0 + 1, z, "OBSIDIAN");
                     for (int k = 1; k <= 3; k++) put(x, y0 - k, z, "BLACKSTONE");
 
-                    // неровная каменная стена кратера с проходами на четырёх осях
                     if (d > F + 0.5 && d <= R + 8) {
                         double th = angle(dx, dz);
                         double nz = Math.sin(3 * th + ph[0]) + 0.8 * Math.sin(7 * th + ph[1]) + 0.5 * Math.sin(13 * th + ph[2]);
@@ -1228,7 +1157,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                     }
                 }
             }
-            // базальтовые шпили с душевыми фонарями
             for (int i = 0; i < 9; i++) {
                 double ang = rnd.nextDouble() * 2 * Math.PI, d = F + 6 + rnd.nextDouble() * (R + 5 - (F + 6));
                 int x = cx + (int) Math.round(Math.cos(ang) * d), z = cz + (int) Math.round(Math.sin(ang) * d);
@@ -1240,7 +1168,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                 }
                 put(x, y0 + hh + 1, z, dat("minecraft:soul_lantern[hanging=false]"));
             }
-            // "лавопады" по краю кратера (из безопасных светящихся блоков)
             for (int k = 0; k < 7; k++) {
                 double ang = k * 2 * Math.PI / 7 + 0.4;
                 int x = cx + (int) Math.round((R + 6) * Math.cos(ang)), z = cz + (int) Math.round((R + 6) * Math.sin(ang));
@@ -1248,7 +1175,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                 if (top == null || top < 4 || corridor(x - cx, z - cz)) continue;
                 for (int y = 1; y <= top + 1; y++) put(x, y0 + y, z, y % 3 == 0 ? "MAGMA_BLOCK" : "SHROOMLIGHT");
             }
-            // гигантские рёбра-арки из костей над ареной
             for (int k = 0; k < 5; k++) {
                 double al = k * Math.PI / 5 + 0.3;
                 for (int i = 0; i < 80; i++) {
@@ -1260,7 +1186,6 @@ public class ArenaManager implements Listener, CommandExecutor, TabCompleter {
                     }
                 }
             }
-            // багровые грибы на гребне кратера
             int fungi = 0;
             for (int t = 0; t < 400 && fungi < 6; t++) {
                 double ang = rnd.nextDouble() * 2 * Math.PI, d = R + 3 + rnd.nextDouble() * 4;

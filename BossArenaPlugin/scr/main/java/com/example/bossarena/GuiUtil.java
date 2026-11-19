@@ -13,9 +13,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Мелкие помощники для GUI календаря (Ray095).
- */
 final class GuiUtil {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
@@ -26,12 +23,10 @@ final class GuiUtil {
         return ChatColor.translateAlternateColorCodes('&', s == null ? "" : s);
     }
 
-    /** Текст с &-цветами без курсива (для названий и описаний предметов). */
     static Component comp(String s) {
         return LEGACY.deserialize(color(s)).decoration(TextDecoration.ITALIC, false);
     }
 
-    /** Текст с &-цветами как есть (для заголовков меню). */
     static Component title(String s) {
         return LEGACY.deserialize(color(s));
     }
@@ -71,7 +66,6 @@ final class GuiUtil {
         return it;
     }
 
-    /** Рамка из двух чередующихся стёкол по краю инвентаря (54 слота). */
     static void frame(Inventory inv, Material a, Material b) {
         ItemStack paneA = pane(a);
         ItemStack paneB = pane(b);

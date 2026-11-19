@@ -1,4 +1,4 @@
-package com.example.bossarena;
+package com.example.bossarena; 
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;

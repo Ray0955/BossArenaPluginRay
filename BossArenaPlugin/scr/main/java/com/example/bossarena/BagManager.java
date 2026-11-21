@@ -38,10 +38,8 @@ public class BagManager implements Listener {
     public ItemStack createBag() {
         ItemStack bag = customItemsManager.createItem("custom_bag");
         if (bag == null) return null;
-
         ItemMeta meta = bag.getItemMeta();
         if (meta == null) return null;
-
         List<String> lore = new ArrayList<>();
         int maxItems = getMaxItems();
         for (String line : meta.getLore()) {
@@ -67,20 +65,23 @@ public class BagManager implements Listener {
         BagHolder holder = new BagHolder(player.getUniqueId());
         Inventory inv = Bukkit.createInventory(holder, size, ChatColor.DARK_PURPLE + "🎒 Сумка кастомных предметов");
         holder.inventory = inv;
-
         String serialized = bagItem.getItemMeta().getPersistentDataContainer().get(bagItemsKey, PersistentDataType.STRING);
         if (serialized != null && !serialized.isEmpty()) deserializeInto(inv, serialized);
-
         player.openInventory(inv);
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
-        if (!(event.getInventory().getHolder() instanceof BagHolder)) return;
+        if (!(event.getInventory().getHolder() instanceof BagHolder holder)) return;
 
         Inventory inv = event.getInventory();
-        for (ItemStack item : player.getInventory().getContents()) {
+        // ★ Сохраняем в сумку ВЛАДЕЛЬЦА ★
+        UUID ownerId = holder.getOwner();
+        Player owner = Bukkit.getPlayer(ownerId);
+        if (owner == null) return;
+
+        for (ItemStack item : owner.getInventory().getContents()) {
             if (isBag(item)) {
                 saveToBag(item, inv);
                 break;
@@ -91,7 +92,6 @@ public class BagManager implements Listener {
     private void saveToBag(ItemStack bagItem, Inventory inv) {
         ItemMeta meta = bagItem.getItemMeta();
         if (meta == null) return;
-
         StringBuilder sb = new StringBuilder();
         for (ItemStack item : inv.getContents()) {
             if (item == null || item.getType().isAir()) sb.append("empty;");
@@ -107,7 +107,6 @@ public class BagManager implements Listener {
         if (!(event.getInventory().getHolder() instanceof BagHolder)) return;
 
         boolean allowVanilla = plugin.getConfig().getBoolean("custom_items.custom_bag.bag_allow_vanilla", false);
-
         if (!allowVanilla) {
             ItemStack cursor = event.getCursor();
             if (cursor != null && !cursor.getType().isAir() && !customItemsManager.isAllowedInBag(cursor)) {
@@ -115,12 +114,10 @@ public class BagManager implements Listener {
                 player.sendMessage(ChatColor.RED + "❌ В сумку можно класть только предметы из лута (custom:)!");
             }
         }
-
         if (event.getCurrentItem() != null && isBag(event.getCurrentItem())) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "❌ Сумку нельзя положить в сумку!");
         }
-
         int maxItems = getMaxItems();
         int currentCount = countItems(event.getInventory());
         if (currentCount >= maxItems && event.getCursor() != null && !event.getCursor().getType().isAir()) {
@@ -132,7 +129,6 @@ public class BagManager implements Listener {
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         if (!(event.getInventory().getHolder() instanceof BagHolder)) return;
-
         boolean allowVanilla = plugin.getConfig().getBoolean("custom_items.custom_bag.bag_allow_vanilla", false);
         if (!allowVanilla) {
             for (ItemStack item : event.getNewItems().values()) {
@@ -174,10 +170,8 @@ public class BagManager implements Listener {
         if (bagItem == null || !isBag(bagItem)) return result;
         ItemMeta meta = bagItem.getItemMeta();
         if (meta == null) return result;
-
         String serialized = meta.getPersistentDataContainer().get(bagItemsKey, PersistentDataType.STRING);
         if (serialized == null || serialized.isEmpty()) return result;
-
         String[] parts = serialized.split(";");
         for (String part : parts) {
             if (part.equals("empty") || part.isEmpty()) continue;
@@ -203,6 +197,26 @@ public class BagManager implements Listener {
         int count = 0;
         for (ItemStack item : inv.getContents()) if (item != null && !item.getType().isAir()) count++;
         return count;
+    }
+
+    public boolean openBagForAdmin(Player admin, Player target) {
+        for (ItemStack item : target.getInventory().getContents()) {
+            if (isBag(item)) {
+                openBagForAdmin(admin, target, item);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void openBagForAdmin(Player admin, Player target, ItemStack bagItem) {
+        int size = getSize();
+        BagHolder holder = new BagHolder(target.getUniqueId());
+        Inventory inv = Bukkit.createInventory(holder, size, ChatColor.DARK_PURPLE + "🎒 Сумка: " + target.getName());
+        holder.inventory = inv;
+        String serialized = bagItem.getItemMeta().getPersistentDataContainer().get(bagItemsKey, PersistentDataType.STRING);
+        if (serialized != null && !serialized.isEmpty()) deserializeInto(inv, serialized);
+        admin.openInventory(inv);
     }
 
     public static class BagHolder implements InventoryHolder {

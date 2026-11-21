@@ -39,6 +39,10 @@ commands:
     description: Выдать сумку кастомных предметов
     usage: /givebag <игрок> [кол-во]
     permission: bossarena.admin
+  baginvsee:
+    description: Открыть сумку игрока (админ)
+    usage: /baginvsee <игрок>
+    permission: bossarena.admin
   calendar:
     description: Показать календарь событий
     usage: /calendar
@@ -53,8 +57,7 @@ commands:
     aliases: [bnpc]
   bossarena:
     description: Управление аренами боссов
-    usage: /bossarena <build|remove|info|tp|sync>
-    permission: bossarena.admin
+    usage: /bossarena <build|remove|info|tp|sync|help>
 
 permissions:
   bossarena.admin:

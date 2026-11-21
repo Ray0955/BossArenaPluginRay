@@ -1,640 +1,669 @@
-# ═══════════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 #                 BOSS ARENA - CONFIGURATION (by Ray095)
-# ═══════════════════════════════════════════════════════════════════════════════════
+# ============================================================================
 # Версия: 1.0.0 | Автор: Ray095 | Minecraft: 1.21.4
+# ============================================================================
 
+# ---------------------------------------------------------------------------
 # 1. АВТОМАТИЧЕСКИЙ СПАВН БОССОВ
+# ---------------------------------------------------------------------------
 auto_spawn:
-  enabled: true                # Включить автоспавн по календарю
-  spawn_radius: 10             # Радиус спавна босса вокруг точки
-  announce_before_spawn: true  # Оповещать игроков заранее
+  enabled: true                # Включить автоспавн боссов по календарю
+  spawn_radius: 10             # Радиус спавна вокруг точки (в блоках)
+  announce_before_spawn: true  # Оповещать игроков заранее (Title + чат)
   announce_time: 30            # За сколько секунд до спавна оповещать
 
+# ---------------------------------------------------------------------------
 # 2. КАЛЕНДАРЬ СОБЫТИЙ
+# ---------------------------------------------------------------------------
 calendar:
-  enabled: true                              # Включить календарь
-  command: "/calendar"                       # Команда открытия
-  title: "&6&l📅 Календарь событий"          # Заголовок GUI
+  enabled: true                              # Включить календарь и автоспавн
+  command: "/calendar"                       # Команда для открытия календаря
+  title: "&6&l📅 Календарь событий"          # Заголовок GUI календаря
   size: 54                                   # Размер инвентаря (кратно 9)
-  timezone: "Europe/Moscow"                  # Часовой пояс
-  schedule:                                  # Расписание по дням
-    monday:
-      - time: "12:00"
-        boss: "zombie_boss"
-        message: "&a&lСегодня в 12:00 появится Главный Зомби!"
-      - time: "18:00"
-        boss: "skeleton_boss"
-        message: "&a&lСегодня в 18:00 появится Скелет-Воин!"
-    tuesday:
-      - time: "15:00"
-        boss: "spider_boss"
-        message: "&a&lСегодня в 15:00 появится Паук-Король!"
-    wednesday:
-      - time: "14:00"
-        boss: "zombie_boss"
-        message: "&a&lСегодня в 14:00 появится Главный Зомби!"
-      - time: "19:00"
-        boss: "dragon_boss"
-        message: "&a&lСегодня в 19:00 появится ★ Дракон Края ★!"
-    thursday:
-      - time: "16:00"
-        boss: "skeleton_boss"
-        message: "&a&lСегодня в 16:00 появится Скелет-Воин!"
-    friday:
-      - time: "17:00"
-        boss: "piglin_boss"
-        message: "&a&lСегодня в 17:00 появится Повелитель Незера!"
-      - time: "22:00"
-        boss: "dragon_boss"
-        message: "&a&lСегодня в 22:00 появится ★ Дракон Края ★!"
-    saturday:
-      - time: "10:00"
-        boss: "zombie_boss"
-        message: "&a&lСегодня в 10:00 появится Главный Зомби!"
-      - time: "22:00"
-        boss: "dragon_boss"
-        message: "&a&lСегодня в 22:00 появится ★ Дракон Края ★!"
-    sunday: []
+  timezone: "Europe/Moscow"                  # Часовой пояс для расписания
+  schedule:                                  # Расписание боссов по дням недели
+    monday:                                  # Понедельник
+      - time: "12:00"                        # Время события (ЧЧ:ММ)
+        boss: "zombie_boss"                  # ID босса (из раздела bosses)
+        message: "&a&lСегодня в 12:00 появится Главный Зомби!"  # Сообщение в чат
+      - time: "18:00"                        # Второе событие в понедельник
+        boss: "skeleton_boss"                # ID босса
+        message: "&a&lСегодня в 18:00 появится Скелет-Воин!"  # Сообщение
+    tuesday:                                 # Вторник
+      - time: "15:00"                        # Время
+        boss: "spider_boss"                  # ID босса
+        message: "&a&lСегодня в 15:00 появится Паук-Король!"  # Сообщение
+    wednesday:                               # Среда
+      - time: "14:00"                        # Время
+        boss: "zombie_boss"                  # ID босса
+        message: "&a&lСегодня в 14:00 появится Главный Зомби!"  # Сообщение
+      - time: "19:00"                        # Второе событие
+        boss: "dragon_boss"                  # ID босса
+        message: "&a&lСегодня в 19:00 появится ★ Дракон Края ★!"  # Сообщение
+    thursday:                                # Четверг
+      - time: "16:00"                        # Время
+        boss: "skeleton_boss"                # ID босса
+        message: "&a&lСегодня в 16:00 появится Скелет-Воин!"  # Сообщение
+    friday:                                  # Пятница
+      - time: "17:00"                        # Время
+        boss: "piglin_boss"                  # ID босса
+        message: "&a&lСегодня в 17:00 появится Повелитель Незера!"  # Сообщение
+      - time: "22:00"                        # Второе событие
+        boss: "dragon_boss"                  # ID босса
+        message: "&a&lСегодня в 22:00 появится ★ Дракон Края ★!"  # Сообщение
+    saturday:                                # Суббота
+      - time: "10:00"                        # Время
+        boss: "zombie_boss"                  # ID босса
+        message: "&a&lСегодня в 10:00 появится Главный Зомби!"  # Сообщение
+      - time: "22:00"                        # Второе событие
+        boss: "dragon_boss"                  # ID босса
+        message: "&a&lСегодня в 22:00 появится ★ Дракон Края ★!"  # Сообщение
+    sunday: []                               # Воскресенье — пустое расписание
 
+# ---------------------------------------------------------------------------
 # 3. НАСТРОЙКИ СУНДУКА
+# ---------------------------------------------------------------------------
 chest_settings:
-  open_time: 10           # Секунд до открытия
-  despawn_time: 30        # Секунд до исчезновения
-  despawn_effects: true   # Частицы при исчезновении
+  open_time: 10           # Секунд до открытия сундука
+  despawn_time: 30        # Секунд до исчезновения после открытия
+  despawn_effects: true   # Показывать частицы при исчезновении
 
+# ---------------------------------------------------------------------------
 # 4. КАСТОМНЫЕ ПРЕДМЕТЫ
+# ---------------------------------------------------------------------------
 custom_items:
-  slime_ball:
-    enabled: true
-    material: "PLAYER_HEAD"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzg1ZDE1N2RiNmM5ZmNjMWE1YmIyNGM0NTkwOTg4NDk5MzNiZDM1NTYwOGNhZTNhNmE0MjA2NjA2NzZiYzMzIn19fQ=="
-    name: "&a&lСгусток слизи"
-    lore:
-      - "&7Слизистый сгусток."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Сила II"
-      - "&2✦ Скорость атаки +5"
-      - "&2✦ Скорость бега +15%"
-      - "&2✦ Здоровье +10"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 0.1%"
-    stats:
-      GENERIC_ATTACK_DAMAGE: 5.0
-      GENERIC_ATTACK_SPEED: 5.0
-      GENERIC_MOVEMENT_SPEED: 0.15
-      GENERIC_MAX_HEALTH: 10.0
-    potion_effects:
-      SPEED:
-        duration: 10
-        level: 2
-      STRENGTH:
-        duration: 10
-        level: 2
-    glow: true
-    unbreakable: false
+  slime_ball:                                 # ID предмета
+    enabled: true                             # Включен ли предмет
+    material: "PLAYER_HEAD"                   # Материал (голова)
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzg1ZDE1N2RiNmM5ZmNjMWE1YmIyNGM0NTkwOTg4NDk5MzNiZDM1NTYwOGNhZTNhNmE0MjA2NjA2NzZiYzMzIn19fQ=="  # Base64 текстуры
+    name: "&a&lСгусток слизи"                 # Отображаемое имя
+    lore:                                     # Описание предмета
+      - "&7Слизистый сгусток."                # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Сила II"                         # Бафф 1
+      - "&2✦ Скорость атаки +5"               # Бафф 2
+      - "&2✦ Скорость бега +15%"              # Бафф 3
+      - "&2✦ Здоровье +10"                    # Бафф 4
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Заголовок редкости
+      - "&4&lШАНС: 0.1%"                      # Шанс выпадения
+    stats:                                    # Атрибуты предмета
+      GENERIC_ATTACK_DAMAGE: 5.0              # +5 урона
+      GENERIC_ATTACK_SPEED: 5.0               # +5 скорости атаки
+      GENERIC_MOVEMENT_SPEED: 0.15            # +15% скорости
+      GENERIC_MAX_HEALTH: 10.0                # +10 HP
+    potion_effects:                           # Зелья-эффекты
+      SPEED:                                  # Скорость
+        duration: 10                          # Длительность (сек)
+        level: 2                              # Уровень (2 = II)
+      STRENGTH:                               # Сила
+        duration: 10                          # Длительность
+        level: 2                              # Уровень
+    glow: true                                # Свечение (зачарование)
+    unbreakable: false                        # Неразрушимый
 
-  custom_bag:
-    enabled: true
-    material: "PLAYER_HEAD"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTRjYWU0OWExZTdmNjVmOTM1YmQ2MjAzYmYzZjNjOTQ0ZGU4M2Y0YTk2MDhhMjZjOGM3NzVjMTg0OWI1YTc0ZiJ9fX0="
-    name: "&d&l🎒 Сумка кастомных предметов"
-    lore:
-      - "&7Вмещает до &d{MAX_ITEMS} &7предметов."
-      - ""
-      - "&6★ ПКМ: &fоткрыть"
-      - ""
-      - "&8Примечание: сумка принимает"
-      - "&8только ресурсы с боссов."
-    bag_size: 27
-    bag_max_items: 27
-    bag_allow_vanilla: false
-    glow: true
-    unbreakable: true
+  custom_bag:                                 # Сумка кастомных предметов
+    enabled: true                             # Включена
+    material: "PLAYER_HEAD"                   # Материал
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTRjYWU0OWExZTdmNjVmOTM1YmQ2MjAzYmYzZjNjOTQ0ZGU4M2Y0YTk2MDhhMjZjOGM3NzVjMTg0OWI1YTc0ZiJ9fX0="  # Base64
+    name: "&d&l🎒 Сумка кастомных предметов"  # Имя
+    lore:                                     # Описание
+      - "&7Вмещает до &d{MAX_ITEMS} &7предметов."  # Лимит
+      - ""                                    # Пустая строка
+      - "&6★ ПКМ: &fоткрыть"                  # Подсказка
+      - ""                                    # Пустая строка
+      - "&8Примечание: сумка принимает"       # Примечание
+      - "&8только ресурсы с боссов."          # Примечание
+    bag_size: 27                              # Размер инвентаря (кратно 9)
+    bag_max_items: 27                         # Максимум предметов
+    bag_allow_vanilla: false                  # Разрешить обычные предметы
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимая
 
-  amulet_of_bravery:
-    enabled: true
-    material: "NETHER_STAR"
-    name: "&6&lАмулет Храбрости"
-    lore:
-      - "&7Древний амулет."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Броня +8"
-      - "&2✦ Прочность +4"
-      - "&2✦ Отбрасывание +50%"
-      - "&2✦ Здоровье +15"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 0.1%"
-    stats:
-      GENERIC_ARMOR: 8.0
-      GENERIC_ARMOR_TOUGHNESS: 4.0
-      GENERIC_KNOCKBACK_RESISTANCE: 0.5
-      GENERIC_MAX_HEALTH: 15.0
-    potion_effects:
-      RESISTANCE:
-        duration: 15
-        level: 2
-    glow: true
-    unbreakable: true
+  amulet_of_bravery:                          # Амулет Храбрости
+    enabled: true                             # Включен
+    material: "NETHER_STAR"                   # Материал
+    name: "&6&lАмулет Храбрости"              # Имя
+    lore:                                     # Описание
+      - "&7Древний амулет."                   # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Броня +8"                        # Бафф
+      - "&2✦ Прочность +4"                    # Бафф
+      - "&2✦ Отбрасывание +50%"               # Бафф
+      - "&2✦ Здоровье +15"                    # Бафф
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 0.1%"                      # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_ARMOR: 8.0                      # +8 брони
+      GENERIC_ARMOR_TOUGHNESS: 4.0            # +4 твёрдости
+      GENERIC_KNOCKBACK_RESISTANCE: 0.5       # +50% отбрасывания
+      GENERIC_MAX_HEALTH: 15.0                # +15 HP
+    potion_effects:                           # Зелья
+      RESISTANCE:                             # Сопротивление
+        duration: 15                          # Длительность
+        level: 2                              # Уровень
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимый
 
-  ring_of_mage:
-    enabled: true
-    material: "PRISMARINE_CRYSTALS"
-    name: "&d&lКольцо Мага"
-    lore:
-      - "&7Магическое кольцо."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Удача +6"
-      - "&2✦ Регенерация II"
-      - "&2✦ Ночное зрение"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 0.1%"
-    stats:
-      GENERIC_LUCK: 6.0
-    potion_effects:
-      REGENERATION:
-        duration: 999999
-        level: 2
-      NIGHT_VISION:
-        duration: 999999
-        level: 1
-    glow: true
-    unbreakable: false
+  ring_of_mage:                               # Кольцо Мага
+    enabled: true                             # Включено
+    material: "PRISMARINE_CRYSTALS"           # Материал
+    name: "&d&lКольцо Мага"                   # Имя
+    lore:                                     # Описание
+      - "&7Магическое кольцо."                # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Удача +6"                        # Бафф
+      - "&2✦ Регенерация II"                  # Бафф
+      - "&2✦ Ночное зрение"                   # Бафф
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 0.1%"                      # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_LUCK: 6.0                       # +6 удачи
+    potion_effects:                           # Зелья
+      REGENERATION:                           # Регенерация
+        duration: 999999                      # Длительность
+        level: 2                              # Уровень
+      NIGHT_VISION:                           # Ночное зрение
+        duration: 999999                      # Длительность
+        level: 1                              # Уровень
+    glow: true                                # Свечение
+    unbreakable: false                        # Разрушимое
 
-  dragon_heart:
-    enabled: true
-    material: "DRAGON_BREATH"
-    name: "&c&lСердце Дракона"
-    lore:
-      - "&7Сердце дракона."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Здоровье +25"
-      - "&2✦ Регенерация II"
-      - "&2✦ Огнестойкость"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 0.1%"
-    stats:
-      GENERIC_MAX_HEALTH: 25.0
-    potion_effects:
-      REGENERATION:
-        duration: 999999
-        level: 2
-      FIRE_RESISTANCE:
-        duration: 999999
-        level: 1
-    glow: true
-    unbreakable: true
+  dragon_heart:                               # Сердце Дракона
+    enabled: true                             # Включено
+    material: "DRAGON_BREATH"                 # Материал
+    name: "&c&lСердце Дракона"                # Имя
+    lore:                                     # Описание
+      - "&7Сердце дракона."                   # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Здоровье +25"                    # Бафф
+      - "&2✦ Регенерация II"                  # Бафф
+      - "&2✦ Огнестойкость"                   # Бафф
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 0.1%"                      # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_MAX_HEALTH: 25.0                # +25 HP
+    potion_effects:                           # Зелья
+      REGENERATION:                           # Регенерация
+        duration: 999999                      # Длительность
+        level: 2                              # Уровень
+      FIRE_RESISTANCE:                        # Огнестойкость
+        duration: 999999                      # Длительность
+        level: 1                              # Уровень
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимое
 
-  emperor_king:
-    enabled: true
-    material: "NETHERITE_HELMET"
-    name: "&6&l👑 Король Императоров"
-    lore:
-      - "&7Корона правителя."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Здоровье +100"
-      - "&2✦ Броня +30"
-      - "&2✦ Сила V"
-      - "&2✦ Скорость III"
-      - "&2✦ Сопротивление III"
-      - "&2✦ Регенерация III"
-      - "&2✦ Удача +25"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 0.1%"
-    stats:
-      GENERIC_MAX_HEALTH: 100.0
-      GENERIC_ARMOR: 30.0
-      GENERIC_ARMOR_TOUGHNESS: 20.0
-      GENERIC_ATTACK_DAMAGE: 20.0
-      GENERIC_MOVEMENT_SPEED: 0.4
-      GENERIC_LUCK: 25.0
-    potion_effects:
-      STRENGTH:
-        duration: 999999
-        level: 5
-      SPEED:
-        duration: 999999
-        level: 3
-      RESISTANCE:
-        duration: 999999
-        level: 3
-      REGENERATION:
-        duration: 999999
-        level: 3
-    glow: true
-    unbreakable: true
+  emperor_king:                               # Король Императоров
+    enabled: true                             # Включен
+    material: "NETHERITE_HELMET"              # Материал
+    name: "&6&l👑 Король Императоров"         # Имя
+    lore:                                     # Описание
+      - "&7Корона правителя."                 # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Здоровье +100"                   # Бафф
+      - "&2✦ Броня +30"                       # Бафф
+      - "&2✦ Сила V"                          # Бафф
+      - "&2✦ Скорость III"                    # Бафф
+      - "&2✦ Сопротивление III"               # Бафф
+      - "&2✦ Регенерация III"                 # Бафф
+      - "&2✦ Удача +25"                       # Бафф
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 0.1%"                      # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_MAX_HEALTH: 100.0               # +100 HP
+      GENERIC_ARMOR: 30.0                     # +30 брони
+      GENERIC_ARMOR_TOUGHNESS: 20.0           # +20 твёрдости
+      GENERIC_ATTACK_DAMAGE: 20.0             # +20 урона
+      GENERIC_MOVEMENT_SPEED: 0.4             # +40% скорости
+      GENERIC_LUCK: 25.0                      # +25 удачи
+    potion_effects:                           # Зелья
+      STRENGTH:                               # Сила
+        duration: 999999                      # Длительность
+        level: 5                              # Уровень
+      SPEED:                                  # Скорость
+        duration: 999999                      # Длительность
+        level: 3                              # Уровень
+      RESISTANCE:                             # Сопротивление
+        duration: 999999                      # Длительность
+        level: 3                              # Уровень
+      REGENERATION:                           # Регенерация
+        duration: 999999                      # Длительность
+        level: 3                              # Уровень
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимый
 
-  titan_crystal:
-    enabled: true
-    material: "AMETHYST_SHARD"
-    vanishing_curse: true                # Проклятие утраты (исчезает при смерти + строка в лоре)
-    name: "&5&l💠 Кристалл Титанов"
-    lore:
-      - "&7Сила титанов."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Здоровье +80"
-      - "&2✦ Броня +25"
-      - "&2✦ Прочность +15"
-      - "&2✦ Регенерация II"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 0.1%"
-    stats:
-      GENERIC_MAX_HEALTH: 80.0
-      GENERIC_ARMOR: 25.0
-      GENERIC_ARMOR_TOUGHNESS: 15.0
-    potion_effects:
-      REGENERATION:
-        duration: 999999
-        level: 2
-    glow: true
-    unbreakable: true
+  titan_crystal:                              # Кристалл Титанов
+    enabled: true                             # Включен
+    material: "AMETHYST_SHARD"                # Материал
+    vanishing_curse: true                     # Проклятие утраты (исчезает при смерти)
+    name: "&5&l💠 Кристалл Титанов"           # Имя
+    lore:                                     # Описание
+      - "&7Сила титанов."                     # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Здоровье +80"                    # Бафф
+      - "&2✦ Броня +25"                       # Бафф
+      - "&2✦ Прочность +15"                   # Бафф
+      - "&2✦ Регенерация II"                  # Бафф
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 0.1%"                      # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_MAX_HEALTH: 80.0                # +80 HP
+      GENERIC_ARMOR: 25.0                     # +25 брони
+      GENERIC_ARMOR_TOUGHNESS: 15.0           # +15 твёрдости
+    potion_effects:                           # Зелья
+      REGENERATION:                           # Регенерация
+        duration: 999999                      # Длительность
+        level: 2                              # Уровень
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимый
 
-  sphere_warrior:
-    enabled: true
-    material: "PLAYER_HEAD"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmEwOTdjZDQ4NzkxOGE4YjkzYzVkYjMyNTc1ZmEzNDU2YjlhZWFiOWQyYzIyNDIyODAwY2U1MDQyMDc3NjJkOSJ9fX0="
-    name: "&c&l⚔ Сфера Воина"
-    lore:
-      - "&7Сфера ярости и скорости."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Броня +1.5"
-      - "&2✦ Урон +2.5"
-      - "&2✦ Скорость +7%"
-      - "&2✦ Скорость атаки +13%"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 5%"
-    stats:
-      GENERIC_ARMOR: 1.5
-      GENERIC_ATTACK_DAMAGE: 2.5
-      GENERIC_MOVEMENT_SPEED: 0.007
-      GENERIC_ATTACK_SPEED: 0.52
-    glow: true
-    unbreakable: true
+  sphere_warrior:                             # Сфера Воина
+    enabled: true                             # Включена
+    material: "PLAYER_HEAD"                   # Материал
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmEwOTdjZDQ4NzkxOGE4YjkzYzVkYjMyNTc1ZmEzNDU2YjlhZWFiOWQyYzIyNDIyODAwY2U1MDQyMDc3NjJkOSJ9fX0="  # Base64
+    name: "&c&l⚔ Сфера Воина"                 # Имя
+    lore:                                     # Описание
+      - "&7Сфера ярости и скорости."          # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Броня +1.5"                      # Бафф
+      - "&2✦ Урон +2.5"                       # Бафф
+      - "&2✦ Скорость +7%"                    # Бафф
+      - "&2✦ Скорость атаки +13%"             # Бафф
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 5%"                        # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_ARMOR: 1.5                      # +1.5 брони
+      GENERIC_ATTACK_DAMAGE: 2.5              # +2.5 урона
+      GENERIC_MOVEMENT_SPEED: 0.007           # +7% скорости
+      GENERIC_ATTACK_SPEED: 0.52              # +13% скорости атаки
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимая
 
-  sphere_ice:
-    enabled: true
-    material: "PLAYER_HEAD"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmViMmY2YjkwMDQwM2MzMzFlZjM4NmYzMjNiZWIxZWFiZjUwMDRhYTg3N2YwNDVjMjhkZTczMTVjNTE3YWQzZiJ9fX0="
-    name: "&b&l❄ Ледяная сфера"
-    lore:
-      - "&7Сфера вечной мерзлоты."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Броня +2.5"
-      - "&2✦ Твёрдость брони +2.5"
-      - "&c✦ Скорость −15%"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 5%"
-    stats:
-      GENERIC_ARMOR: 2.5
-      GENERIC_ARMOR_TOUGHNESS: 2.5
-      GENERIC_MOVEMENT_SPEED: -0.015
-    glow: true
-    unbreakable: true
+  sphere_ice:                                 # Ледяная сфера
+    enabled: true                             # Включена
+    material: "PLAYER_HEAD"                   # Материал
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmViMmY2YjkwMDQwM2MzMzFlZjM4NmYzMjNiZWIxZWFiZjUwMDRhYTg3N2YwNDVjMjhkZTczMTVjNTE3YWQzZiJ9fX0="  # Base64
+    name: "&b&l❄ Ледяная сфера"               # Имя
+    lore:                                     # Описание
+      - "&7Сфера вечной мерзлоты."            # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Броня +2.5"                      # Бафф
+      - "&2✦ Твёрдость брони +2.5"            # Бафф
+      - "&c✦ Скорость −15%"                   # Минус
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 5%"                        # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_ARMOR: 2.5                      # +2.5 брони
+      GENERIC_ARMOR_TOUGHNESS: 2.5            # +2.5 твёрдости
+      GENERIC_MOVEMENT_SPEED: -0.015          # −15% скорости
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимая
 
-  sphere_titan:
-    enabled: true
-    material: "PLAYER_HEAD"
-    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYyMTA2OTY5NTk1NWEwYTk4ZmNiMzBmYzdiYWRkYzJmM2IxNmE3MWQ5YzRiM2I4MDhhMWMzMmUzMGU5MDFjNyJ9fX0="
-    name: "&7&l🛡 Сфера Титана"
-    lore:
-      - "&7Тяжёлая броня титанов."
-      - ""
-      - "&6★ БАФФЫ:"
-      - "&2✦ Броня +2.5"
-      - "&2✦ Твёрдость брони +2.5"
-      - "&c✦ Скорость −15%"
-      - ""
-      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"
-      - "&4&lШАНС: 5%"
-    stats:
-      GENERIC_ARMOR: 2.5
-      GENERIC_ARMOR_TOUGHNESS: 2.5
-      GENERIC_MOVEMENT_SPEED: -0.015
-    glow: true
-    unbreakable: true
+  sphere_titan:                               # Сфера Титана
+    enabled: true                             # Включена
+    material: "PLAYER_HEAD"                   # Материал
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYyMTA2OTY5NTk1NWEwYTk4ZmNiMzBmYzdiYWRkYzJmM2IxNmE3MWQ5YzRiM2I4MDhhMWMzMmUzMGU5MDFjNyJ9fX0="  # Base64
+    name: "&7&l🛡 Сфера Титана"                # Имя
+    lore:                                     # Описание
+      - "&7Тяжёлая броня титанов."            # Строка 1
+      - ""                                    # Пустая строка
+      - "&6★ БАФФЫ:"                          # Заголовок баффов
+      - "&2✦ Броня +2.5"                      # Бафф
+      - "&2✦ Твёрдость брони +2.5"            # Бафф
+      - "&c✦ Скорость −15%"                   # Минус
+      - ""                                    # Пустая строка
+      - "&4&l★ ★ ★ ★ ★ МИФИЧЕСКИЙ ПРЕДМЕТ! ★ ★ ★ ★ ★"  # Редкость
+      - "&4&lШАНС: 5%"                        # Шанс
+    stats:                                    # Атрибуты
+      GENERIC_ARMOR: 2.5                      # +2.5 брони
+      GENERIC_ARMOR_TOUGHNESS: 2.5            # +2.5 твёрдости
+      GENERIC_MOVEMENT_SPEED: -0.015          # −15% скорости
+    glow: true                                # Свечение
+    unbreakable: true                         # Неразрушимая
 
+# ---------------------------------------------------------------------------
 # 5. ГЛОБАЛЬНЫЙ ЛУТ
-global_loot:
-  - "STONE:64-128:100.0"
-  - "DIRT:64-128:100.0"
-  - "COBBLESTONE:64-128:100.0"
-  - "OAK_LOG:32-64:100.0"
-  - "SAND:32-64:80.0"
-  - "GRAVEL:16-32:70.0"
-  - "STICK:16-32:60.0"
-  - "ROTTEN_FLESH:10-20:50.0"
-  - "BONE:15-30:45.0"
-  - "STRING:8-16:40.0"
-  - "FEATHER:5-10:30.0"
-  - "LEATHER:5-10:25.0"
-  - "PAPER:8-16:35.0"
-  - "WHEAT:5-15:30.0"
-  - "WHEAT_SEEDS:5-15:40.0"
-  - "BREAD:3-8:40.0"
-  - "COOKED_BEEF:5-10:35.0"
-  - "COOKED_CHICKEN:5-10:30.0"
-  - "APPLE:3-8:25.0"
-  - "GOLDEN_APPLE:1-3:10.0"
-  - "COOKED_PORKCHOP:3-8:30.0"
-  - "COAL:16-32:70.0"
-  - "IRON_INGOT:20-40:60.0"
-  - "GOLD_INGOT:10-20:50.0"
-  - "REDSTONE:16-32:45.0"
-  - "LAPIS_LAZULI:8-16:35.0"
-  - "COPPER_INGOT:16-32:40.0"
-  - "DIAMOND:10-20:40.0"
-  - "EMERALD:5-15:25.0"
-  - "DIAMOND_BLOCK:1-3:5.0"
-  - "QUARTZ:16-32:30.0"
-  - "AMETHYST_SHARD:8-16:25.0"
-  - "IRON_SWORD:1:20.0"
-  - "IRON_PICKAXE:1:18.0"
-  - "IRON_HELMET:1:15.0"
-  - "IRON_CHESTPLATE:1:15.0"
-  - "IRON_LEGGINGS:1:15.0"
-  - "IRON_BOOTS:1:15.0"
-  - "DIAMOND_SWORD:1:15.0"
-  - "DIAMOND_PICKAXE:1:12.0"
-  - "BOW:1:20.0"
-  - "ARROW:20-40:55.0"
-  - "NETHERITE_INGOT:1-2:2.5"
-  - "TOTEM_OF_UNDYING:1-2:3.0"
-  - "ENDER_PEARL:3-8:35.0"
-  - "NETHER_STAR:1:1.0"
-  - "BEACON:1:0.5"
-  - "ENCHANTED_GOLDEN_APPLE:1:0.5"
-  - "DRAGON_HEAD:1:0.3"
-  - "ELYTRA:1:0.2"
-  - "NETHERITE_BLOCK:1:0.1"
-  - "DRAGON_EGG:1:0.05"
-  - "custom:slime_ball:1:0.1"
-  - "custom:amulet_of_bravery:1:0.1"
-  - "custom:ring_of_mage:1:0.1"
-  - "custom:dragon_heart:1:0.1"
-  - "custom:emperor_king:1:0.1"
-  - "custom:titan_crystal:1:0.1"
-  - "custom:sphere_warrior:1:5.0"
-  - "custom:sphere_ice:1:5.0"
-  - "custom:sphere_titan:1:5.0"
+# ---------------------------------------------------------------------------
+global_loot:                                  # Список предметов, выпадающих из сундука
+  - "STONE:64-128:100.0"                      # 64-128 камня, шанс 100%
+  - "DIRT:64-128:100.0"                       # 64-128 земли, шанс 100%
+  - "COBBLESTONE:64-128:100.0"                # 64-128 булыжника, шанс 100%
+  - "OAK_LOG:32-64:100.0"                     # 32-64 дуба, шанс 100%
+  - "SAND:32-64:80.0"                         # 32-64 песка, шанс 80%
+  - "GRAVEL:16-32:70.0"                       # 16-32 гравия, шанс 70%
+  - "STICK:16-32:60.0"                        # 16-32 палок, шанс 60%
+  - "ROTTEN_FLESH:10-20:50.0"                 # 10-20 гнилой плоти, шанс 50%
+  - "BONE:15-30:45.0"                         # 15-30 костей, шанс 45%
+  - "STRING:8-16:40.0"                        # 8-16 нитей, шанс 40%
+  - "FEATHER:5-10:30.0"                       # 5-10 перьев, шанс 30%
+  - "LEATHER:5-10:25.0"                       # 5-10 кожи, шанс 25%
+  - "PAPER:8-16:35.0"                         # 8-16 бумаги, шанс 35%
+  - "WHEAT:5-15:30.0"                         # 5-15 пшеницы, шанс 30%
+  - "WHEAT_SEEDS:5-15:40.0"                   # 5-15 семян, шанс 40%
+  - "BREAD:3-8:40.0"                          # 3-8 хлеба, шанс 40%
+  - "COOKED_BEEF:5-10:35.0"                   # 5-10 стейков, шанс 35%
+  - "COOKED_CHICKEN:5-10:30.0"                # 5-10 курицы, шанс 30%
+  - "APPLE:3-8:25.0"                          # 3-8 яблок, шанс 25%
+  - "GOLDEN_APPLE:1-3:10.0"                   # 1-3 золотых яблока, шанс 10%
+  - "COOKED_PORKCHOP:3-8:30.0"                # 3-8 свинины, шанс 30%
+  - "COAL:16-32:70.0"                         # 16-32 угля, шанс 70%
+  - "IRON_INGOT:20-40:60.0"                   # 20-40 железа, шанс 60%
+  - "GOLD_INGOT:10-20:50.0"                   # 10-20 золота, шанс 50%
+  - "REDSTONE:16-32:45.0"                     # 16-32 редстоуна, шанс 45%
+  - "LAPIS_LAZULI:8-16:35.0"                  # 8-16 лазурита, шанс 35%
+  - "COPPER_INGOT:16-32:40.0"                 # 16-32 меди, шанс 40%
+  - "DIAMOND:10-20:40.0"                      # 10-20 алмазов, шанс 40%
+  - "EMERALD:5-15:25.0"                       # 5-15 изумрудов, шанс 25%
+  - "DIAMOND_BLOCK:1-3:5.0"                   # 1-3 алмазных блока, шанс 5%
+  - "QUARTZ:16-32:30.0"                       # 16-32 кварца, шанс 30%
+  - "AMETHYST_SHARD:8-16:25.0"                # 8-16 аметиста, шанс 25%
+  - "IRON_SWORD:1:20.0"                       # 1 железный меч, шанс 20%
+  - "IRON_PICKAXE:1:18.0"                     # 1 железная кирка, шанс 18%
+  - "IRON_HELMET:1:15.0"                      # 1 железный шлем, шанс 15%
+  - "IRON_CHESTPLATE:1:15.0"                  # 1 железный нагрудник, шанс 15%
+  - "IRON_LEGGINGS:1:15.0"                    # 1 железные штаны, шанс 15%
+  - "IRON_BOOTS:1:15.0"                       # 1 железные ботинки, шанс 15%
+  - "DIAMOND_SWORD:1:15.0"                    # 1 алмазный меч, шанс 15%
+  - "DIAMOND_PICKAXE:1:12.0"                  # 1 алмазная кирка, шанс 12%
+  - "BOW:1:20.0"                              # 1 лук, шанс 20%
+  - "ARROW:20-40:55.0"                        # 20-40 стрел, шанс 55%
+  - "NETHERITE_INGOT:1-2:2.5"                 # 1-2 незеритовых слитка, шанс 2.5%
+  - "TOTEM_OF_UNDYING:1-2:3.0"                # 1-2 тотема, шанс 3%
+  - "ENDER_PEARL:3-8:35.0"                    # 3-8 эндер-жемчуга, шанс 35%
+  - "NETHER_STAR:1:1.0"                       # 1 звезда Нижнего мира, шанс 1%
+  - "BEACON:1:0.5"                            # 1 маяк, шанс 0.5%
+  - "ENCHANTED_GOLDEN_APPLE:1:0.5"            # 1 зачарованное золотое яблоко, шанс 0.5%
+  - "DRAGON_HEAD:1:0.3"                       # 1 голова дракона, шанс 0.3%
+  - "ELYTRA:1:0.2"                            # 1 элитры, шанс 0.2%
+  - "NETHERITE_BLOCK:1:0.1"                   # 1 незеритовый блок, шанс 0.1%
+  - "DRAGON_EGG:1:0.05"                       # 1 яйцо дракона, шанс 0.05%
+  - "custom:slime_ball:1:0.1"                 # Кастомный сгусток слизи, шанс 0.1%
+  - "custom:amulet_of_bravery:1:0.1"          # Кастомный амулет, шанс 0.1%
+  - "custom:ring_of_mage:1:0.1"               # Кастомное кольцо, шанс 0.1%
+  - "custom:dragon_heart:1:0.1"               # Кастомное сердце, шанс 0.1%
+  - "custom:emperor_king:1:0.1"               # Кастомная корона, шанс 0.1%
+  - "custom:titan_crystal:1:0.1"              # Кастомный кристалл, шанс 0.1%
+  - "custom:sphere_warrior:1:5.0"             # Сфера Воина, шанс 5%
+  - "custom:sphere_ice:1:5.0"                 # Ледяная сфера, шанс 5%
+  - "custom:sphere_titan:1:5.0"               # Сфера Титана, шанс 5%
 
+# ---------------------------------------------------------------------------
 # 6. РАЗМЕР СУНДУКА
+# ---------------------------------------------------------------------------
 chest:
-  size: 54
-  max_slots: 35
-  min_empty_slots: 10
-  guaranteed_min: 1
-  guaranteed_max: 0
+  size: 54                 # Размер инвентаря (кратно 9)
+  max_slots: 35            # Максимум слотов для заполнения
+  min_empty_slots: 10      # Минимум пустых слотов
+  guaranteed_min: 1        # Минимум гарантированных (100%) предметов
+  guaranteed_max: 0        # Максимум (0 = все гарантированные)
 
+# ---------------------------------------------------------------------------
 # 7. БОССЫ
+# ---------------------------------------------------------------------------
 bosses:
-  zombie_boss:
-    enabled: true
-    respawn_delay: 30
-    required_environment: "NORMAL"
+  zombie_boss:                               # ID босса
+    enabled: true                            # Включен ли босс
+    respawn_delay: 30                        # Задержка респавна (сек)
+    required_environment: "NORMAL"           # Мир (NORMAL / NETHER / THE_END)
     arena:
-      enabled: true
-    spawn:
-      world: "world"
-      x: 0.0
-      y: 0.0
-      z: 0.0
-      radius: 10
-    boss:
-      type: "ZOMBIE"
-      health: 200.0
-      name: "&c&lГлавный Зомби"
-      damage: 5.0
-    helpers:
-      enabled: true
-      spawn_mode: "ON_HEALTH_PERCENT"
-      health_thresholds: [75, 50, 25]
-      count: 3
-      health: 40.0
-      type: "ZOMBIE"
-      boss_invulnerable: true
-      damage: 3.0
-      spawn_message: "&6&l⚔️ &fПомощники появились!"
+      enabled: true                          # Привязывать к арене
+    spawn:                                   # Точка спавна
+      world: "world"                         # Название мира
+      x: 0.0                                 # Координата X
+      y: 0.0                                 # Координата Y
+      z: 0.0                                 # Координата Z
+      radius: 10                             # Радиус спавна
+    boss:                                    # Параметры босса
+      type: "ZOMBIE"                         # Тип сущности
+      health: 200.0                          # Максимальное здоровье
+      name: "&c&lГлавный Зомби"              # Отображаемое имя
+      damage: 5.0                            # Урон босса
+    helpers:                                 # Помощники
+      enabled: true                          # Включены ли
+      spawn_mode: "ON_HEALTH_PERCENT"        # Режим (ON_SPAWN / ON_HEALTH_PERCENT)
+      health_thresholds: [75, 50, 25]        # Пороги здоровья для спавна
+      count: 3                               # Количество помощников
+      health: 40.0                           # Здоровье помощника
+      type: "ZOMBIE"                         # Тип помощника
+      boss_invulnerable: true                # Босс неуязвим, пока живы помощники
+      damage: 3.0                            # Урон помощника
+      spawn_message: "&6&l⚔️ &fПомощники появились!"  # Сообщение
 
-  skeleton_boss:
-    enabled: true
-    respawn_delay: 30
-    required_environment: "NORMAL"
+  skeleton_boss:                             # Скелет-Воин
+    enabled: true                            # Включен
+    respawn_delay: 30                        # Задержка
+    required_environment: "NORMAL"           # Мир
     arena:
-      enabled: true
-    spawn:
-      world: "world"
-      x: 0.0
-      y: 0.0
-      z: 0.0
-      radius: 10
-    boss:
-      type: "WITHER_SKELETON"
-      health: 350.0
-      name: "&6&lСкелет-Воин"
-      damage: 8.0
-    helpers:
-      enabled: true
-      spawn_mode: "ON_HEALTH_PERCENT"
-      health_thresholds: [80, 50, 20]
-      count: 5
-      health: 50.0
-      type: "SKELETON"
-      boss_invulnerable: true
-      damage: 4.0
-      spawn_message: "&6&l⚔️ &eСкелеты-стражи появились!"
+      enabled: true                          # Привязка к арене
+    spawn:                                   # Точка спавна
+      world: "world"                         # Мир
+      x: 0.0                                 # X
+      y: 0.0                                 # Y
+      z: 0.0                                 # Z
+      radius: 10                             # Радиус
+    boss:                                    # Параметры
+      type: "WITHER_SKELETON"                # Тип
+      health: 350.0                          # HP
+      name: "&6&lСкелет-Воин"                # Имя
+      damage: 8.0                            # Урон
+    helpers:                                 # Помощники
+      enabled: true                          # Включены
+      spawn_mode: "ON_HEALTH_PERCENT"        # Режим
+      health_thresholds: [80, 50, 20]        # Пороги
+      count: 5                               # Количество
+      health: 50.0                           # HP
+      type: "SKELETON"                       # Тип
+      boss_invulnerable: true                # Неуязвимость
+      damage: 4.0                            # Урон
+      spawn_message: "&6&l⚔️ &eСкелеты-стражи появились!"  # Сообщение
 
-  spider_boss:
-    enabled: true
-    respawn_delay: 30
-    required_environment: "NORMAL"
+  spider_boss:                               # Паук-Король
+    enabled: true                            # Включен
+    respawn_delay: 30                        # Задержка
+    required_environment: "NORMAL"           # Мир
     arena:
-      enabled: true
-    spawn:
-      world: "world"
-      x: 0.0
-      y: 0.0
-      z: 0.0
-      radius: 10
-    boss:
-      type: "SPIDER"
-      health: 250.0
-      name: "&a&lПаук-Король"
-      damage: 6.0
-    helpers:
-      enabled: true
-      spawn_mode: "ON_SPAWN"
-      count: 8
-      health: 30.0
-      type: "CAVE_SPIDER"
-      boss_invulnerable: false
-      damage: 2.5
-      spawn_message: "&a&l🕷️ &fПауки-стражи появились!"
+      enabled: true                          # Привязка
+    spawn:                                   # Точка
+      world: "world"                         # Мир
+      x: 0.0                                 # X
+      y: 0.0                                 # Y
+      z: 0.0                                 # Z
+      radius: 10                             # Радиус
+    boss:                                    # Параметры
+      type: "SPIDER"                         # Тип
+      health: 250.0                          # HP
+      name: "&a&lПаук-Король"                # Имя
+      damage: 6.0                            # Урон
+    helpers:                                 # Помощники
+      enabled: true                          # Включены
+      spawn_mode: "ON_SPAWN"                 # Режим
+      count: 8                               # Количество
+      health: 30.0                           # HP
+      type: "CAVE_SPIDER"                    # Тип
+      boss_invulnerable: false               # Неуязвимость
+      damage: 2.5                            # Урон
+      spawn_message: "&a&l🕷️ &fПауки-стражи появились!"  # Сообщение
 
-  piglin_boss:
-    enabled: true
-    respawn_delay: 30
-    required_environment: "NETHER"
+  piglin_boss:                               # Повелитель Незера
+    enabled: true                            # Включен
+    respawn_delay: 30                        # Задержка
+    required_environment: "NETHER"           # Мир
     arena:
-      enabled: true
-    spawn:
-      world: "world_nether"
-      x: 0.0
-      y: 0.0
-      z: 0.0
-      radius: 15
-    boss:
-      type: "PIGLIN_BRUTE"
-      health: 500.0
-      name: "&4&lПовелитель Незера"
-      damage: 10.0
-    helpers:
-      enabled: true
-      spawn_mode: "ON_HEALTH_PERCENT"
-      health_thresholds: [85, 60, 35, 15]
-      count: 6
-      health: 60.0
-      type: "PIGLIN"
-      boss_invulnerable: true
-      damage: 5.0
-      spawn_message: "&4&l👹 &fСвинолюды появились!"
+      enabled: true                          # Привязка
+    spawn:                                   # Точка
+      world: "world_nether"                  # Мир
+      x: 0.0                                 # X
+      y: 0.0                                 # Y
+      z: 0.0                                 # Z
+      radius: 15                             # Радиус
+    boss:                                    # Параметры
+      type: "PIGLIN_BRUTE"                   # Тип
+      health: 500.0                          # HP
+      name: "&4&lПовелитель Незера"          # Имя
+      damage: 10.0                           # Урон
+    helpers:                                 # Помощники
+      enabled: true                          # Включены
+      spawn_mode: "ON_HEALTH_PERCENT"        # Режим
+      health_thresholds: [85, 60, 35, 15]    # Пороги
+      count: 6                               # Количество
+      health: 60.0                           # HP
+      type: "PIGLIN"                         # Тип
+      boss_invulnerable: true                # Неуязвимость
+      damage: 5.0                            # Урон
+      spawn_message: "&4&l👹 &fСвинолюды появились!"  # Сообщение
 
-  dragon_boss:
-    enabled: true
-    respawn_delay: 60
-    required_environment: "THE_END"
+  dragon_boss:                               # Дракон Края
+    enabled: true                            # Включен
+    respawn_delay: 60                        # Задержка
+    required_environment: "THE_END"          # Мир
     arena:
-      enabled: true
-    spawn:
-      world: "world_the_end"
-      x: 0.0
-      y: 80.0
-      z: 0.0
-      radius: 30
-    boss:
-      type: "ENDER_DRAGON"
-      health: 1000.0
-      name: "&d&l★ Дракон Края ★"
-      damage: 15.0
-    helpers:
-      enabled: true
-      spawn_mode: "ON_HEALTH_PERCENT"
-      health_thresholds: [90, 70, 50, 30, 10]
-      count: 10
-      health: 80.0
-      type: "ENDERMAN"
-      boss_invulnerable: true
-      damage: 7.0
-      spawn_message: "&d&l⭐ &fЭндермены появились!"
+      enabled: true                          # Привязка
+    spawn:                                   # Точка
+      world: "world_the_end"                 # Мир
+      x: 0.0                                 # X
+      y: 80.0                                # Y
+      z: 0.0                                 # Z
+      radius: 30                             # Радиус
+    boss:                                    # Параметры
+      type: "ENDER_DRAGON"                   # Тип
+      health: 1000.0                         # HP
+      name: "&d&l★ Дракон Края ★"            # Имя
+      damage: 15.0                           # Урон
+    helpers:                                 # Помощники
+      enabled: true                          # Включены
+      spawn_mode: "ON_HEALTH_PERCENT"        # Режим
+      health_thresholds: [90, 70, 50, 30, 10] # Пороги
+      count: 10                              # Количество
+      health: 80.0                           # HP
+      type: "ENDERMAN"                       # Тип
+      boss_invulnerable: true                # Неуязвимость
+      damage: 7.0                            # Урон
+      spawn_message: "&d&l⭐ &fЭндермены появились!"  # Сообщение
 
+# ---------------------------------------------------------------------------
 # 8. ГЛОБАЛЬНЫЕ НАСТРОЙКИ
+# ---------------------------------------------------------------------------
 global:
-  infinite_rotation: true
-  announce_next_boss: true
-  random_order: false
+  infinite_rotation: true    # Бесконечная ротация боссов
+  announce_next_boss: true   # Анонс следующего босса
+  random_order: false        # Случайный порядок боссов
 
+# ---------------------------------------------------------------------------
 # 9. ДОНАТ-ВАЛЮТА
+# ---------------------------------------------------------------------------
 donate:
-  enabled: true
-  rewards:
-    place_1: 50
-    place_2: 40
-    place_3: 30
-    place_4: 20
-    place_5: 10
-  min_damage_percent: 1.0
-  min_hits: 1
-  show_damage_stats: true
+  enabled: true              # Включить донат-валюту (Vault)
+  rewards:                   # Награды по местам
+    place_1: 50              # 1 место — 50
+    place_2: 40              # 2 место — 40
+    place_3: 30              # 3 место — 30
+    place_4: 20              # 4 место — 20
+    place_5: 10              # 5 место — 10
+  min_damage_percent: 1.0    # Минимальный % урона
+  min_hits: 1                # Минимальное количество ударов
+  show_damage_stats: true    # Показывать топ урона
 
+# ---------------------------------------------------------------------------
 # 10. СООБЩЕНИЯ
+# ---------------------------------------------------------------------------
 messages:
-  boss_spawn: "&6&l⚔️ &fБосс: &c&l{BOSS_NAME}"
-  boss_killed: "&a&l✅ &fБосс &c&l{BOSS_NAME} &fповержен!"
-  next_boss: "&e&l⏳ &fСледующий босс через &6&l{TIME} &fсек!"
-  rare_item: "&6&l✨ &d&l{PLAYER} &fполучил: &e&l{ITEM}"
-  damage_stats_title: "&6&l📊 &fТоп урона:"
-  damage_stats_line: "&f#{POS} &e{PLAYER} &7- &c{DAMAGE}%"
-  calendar_spawned: "&a✅ Босс {BOSS} появился!"
-  chest_open: "&6&l📦 &fСундук открыт!"
-  boss_force_despawn: "&c⚠️ Старый босс исчез!"
-  donate_give: "&a💰 Вы заняли &6&l#{POS} &aместо: &6&l{AMOUNT} &aвалюты!"
-  donate_not_enough_damage: "&c❌ Недостаточный урон (&f{DAMAGE}%&c/&f{MIN}%&c)"
-  donate_not_enough_hits: "&c❌ Недостаточно ударов (&f{HITS}&c/&f{MIN}&c)"
-  summon_unknown_boss: "&c❌ Босс '{ID}' не найден! Список: /bosslist"
-  summon_world_unavailable: "&c❌ Мир для этого босса не загружен или не настроен!"
-  summon_bad_point: "&c❌ Точка спавна этого босса стоит не в том мире! Встаньте в {ENV} и введите /setboss {ID}"
-  summon_need_end: "&c❌ Для вызова дракона нужно быть в Эндер-мире!"
-  summon_need_nether: "&c❌ Для вызова этого босса нужно быть в Нижнем мире!"
-  summon_need_world: "&c❌ Для вызова этого босса нужно быть в мире {WORLD}!"
-  summon_ok: "&a⚔️ Босс {BOSS} &aвызван!"
-  setboss_need_end: "&c❌ Точку дракона можно ставить только в Эндер-мире!"
-  setboss_need_nether: "&c❌ Точку этого босса можно ставить только в Нижнем мире!"
-  setboss_need_normal: "&c❌ Точку этого босса можно ставить только в обычном мире!"
+  boss_spawn: "&6&l⚔️ &fБосс: &c&l{BOSS_NAME}"                        # Спавн босса
+  boss_killed: "&a&l✅ &fБосс &c&l{BOSS_NAME} &fповержен!"             # Смерть босса
+  next_boss: "&e&l⏳ &fСледующий босс через &6&l{TIME} &fсек!"         # Таймер
+  rare_item: "&6&l✨ &d&l{PLAYER} &fполучил: &e&l{ITEM}"               # Редкий лут
+  damage_stats_title: "&6&l📊 &fТоп урона:"                            # Заголовок топа
+  damage_stats_line: "&f#{POS} &e{PLAYER} &7- &c{DAMAGE}%"             # Строка топа
+  calendar_spawned: "&a✅ Босс {BOSS} появился!"                       # Спавн по календарю
+  chest_open: "&6&l📦 &fСундук открыт!"                                # Открытие сундука
+  boss_force_despawn: "&c⚠️ Старый босс исчез!"                        # Принудительное исчезновение
+  donate_give: "&a💰 Вы заняли &6&l#{POS} &aместо: &6&l{AMOUNT} &aвалюты!"  # Награда
+  donate_not_enough_damage: "&c❌ Недостаточный урон (&f{DAMAGE}%&c/&f{MIN}%&c)"  # Мало урона
+  donate_not_enough_hits: "&c❌ Недостаточно ударов (&f{HITS}&c/&f{MIN}&c)"       # Мало ударов
+  summon_unknown_boss: "&c❌ Босс '{ID}' не найден! Список: /bosslist"  # Неизвестный босс
+  summon_world_unavailable: "&c❌ Мир для этого босса не загружен или не настроен!"  # Нет мира
+  summon_bad_point: "&c❌ Точка спавна этого босса стоит не в том мире! Встаньте в {ENV} и введите /setboss {ID}"  # Неверная точка
+  summon_need_end: "&c❌ Для вызова дракона нужно быть в Эндер-мире!"   # Нужен Энд
+  summon_need_nether: "&c❌ Для вызова этого босса нужно быть в Нижнем мире!"  # Нужен Незер
+  summon_need_world: "&c❌ Для вызова этого босса нужно быть в мире {WORLD}!"  # Нужен мир
+  summon_ok: "&a⚔️ Босс {BOSS} &aвызван!"                              # Успешный вызов
+  setboss_need_end: "&c❌ Точку дракона можно ставить только в Эндер-мире!"  # Нельзя ставить
+  setboss_need_nether: "&c❌ Точку этого босса можно ставить только в Нижнем мире!"  # Нельзя ставить
+  setboss_need_normal: "&c❌ Точку этого босса можно ставить только в обычном мире!"  # Нельзя ставить
 
+# ---------------------------------------------------------------------------
 # 11. ДОПОЛНИТЕЛЬНО
+# ---------------------------------------------------------------------------
 settings:
-  debug: true
-  spawn_particles: true
-  spawn_sounds: true
-  reward_radius: 50.0
-  bossbar_view_range: 200.0    # Радиус видимости боссбара (в блоках)
+  debug: true                # Режим отладки (логи в консоль)
+  spawn_particles: true      # Частицы при спавне босса
+  spawn_sounds: true         # Звуки при спавне босса
+  reward_radius: 50.0        # Радиус награды (не используется)
+  bossbar_view_range: 200.0  # Радиус видимости боссбара (в блоках)
 
+# ---------------------------------------------------------------------------
 # 12. ТОЧКА СПАВНА
+# ---------------------------------------------------------------------------
 boss_spawn:
-  world: "world"
-  x: 0.0
-  y: 0.0
-  z: 0.0
-  yaw: 0.0
-  pitch: 0.0
-  spawn_radius: 10
+  world: "world"             # Мир
+  x: 0.0                     # X
+  y: 0.0                     # Y
+  z: 0.0                     # Z
+  yaw: 0.0                   # Поворот (yaw)
+  pitch: 0.0                 # Наклон (pitch)
+  spawn_radius: 10           # Радиус спавна
 
+# ---------------------------------------------------------------------------
 # 13. NPC-ВИТРИНА
+# ---------------------------------------------------------------------------
 boss_npc:
-  enabled: true
-  available: true
-  disabled_message: "&c⚠️ Витрина недоступна! Тех. работы."
-  name: "&6&l📦 Ресурсы с боссов"
-  click_message: "&7Здесь показаны ресурсы с боссов!"
-  location:
-    world: "world"
-    x: 0.0
-    y: 64.0
-    z: 0.0
-    yaw: 0.0
-    pitch: 0.0
-    placed: false
-  info:
-    title: "&6&l📖 ВАЖНО!"
-    lore:
-      - "&7Здесь показан &6возможный &7лут."
-      - "&7Выпадет &cстолько часть &7— по шансам."
-      - ""
-      - "&7Светятся предметы с шансом &c< 1%"
-      - "&7Это &d&lМИФИЧЕСКИЕ &7предметы."
-      - ""
-      - "&7В одном сундуке не будет всё сразу."
-  showcase:
-    items_per_row: 7
-    title: "&6&l📦 Ресурсы с боссов"
-    size: 54
+  enabled: true                                              # Включить NPC
+  available: true                                            # Доступна ли витрина
+  disabled_message: "&c⚠️ Витрина недоступна! Тех. работы."  # Сообщение при отключении
+  name: "&6&l📦 Ресурсы с боссов"                            # Имя NPC
+  click_message: "&7Здесь показаны ресурсы с боссов!"        # ActionBar при клике
+  location:                                                  # Локация NPC
+    world: "world"                                           # Мир
+    x: 0.0                                                   # X
+    y: 64.0                                                  # Y
+    z: 0.0                                                   # Z
+    yaw: 0.0                                                 # Поворот
+    pitch: 0.0                                               # Наклон
+    placed: false                                            # Установлен ли NPC
+  info:                                                      # Информационная книга
+    title: "&6&l📖 ВАЖНО!"                                   # Заголовок
+    lore:                                                    # Описание
+      - "&7Здесь показан &6возможный &7лут."                 # Строка 1
+      - "&7Выпадет &cстолько часть &7— по шансам."           # Строка 2
+      - ""                                                   # Пустая строка
+      - "&7Светятся предметы с шансом &c< 1%"                # Строка 3
+      - "&7Это &d&lМИФИЧЕСКИЕ &7предметы."                   # Строка 4
+      - ""                                                   # Пустая строка
+      - "&7В одном сундуке не будет всё сразу."              # Строка 5
+  showcase:                                                  # Настройки витрины
+    items_per_row: 7                                         # Предметов в ряд (1-7)
+    title: "&6&l📦 Ресурсы с боссов"                         # Заголовок GUI
+    size: 54                                                 # Размер инвентаря
 
+# ---------------------------------------------------------------------------
 # 14. АРЕНЫ
+# ---------------------------------------------------------------------------
 arena:
-  radius: 28
-  blocks_per_tick: 1500
-  places: {}
+  radius: 28                 # Радиус арены по умолчанию
+  blocks_per_tick: 1500      # Блоков за тик при строительстве
+  places: {}                 # Список арен (заполняется через /bossarena build)

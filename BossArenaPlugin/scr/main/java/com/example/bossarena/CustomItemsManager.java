@@ -1,4 +1,4 @@
-package com.example.bossarena; 
+package com.example.bossarena;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
@@ -186,8 +186,17 @@ public class CustomItemsManager {
                 for (ItemStack bagItem : bagManager.getBagContents(item)) addItemToList(bagItem, result);
             }
         }
-        for (ItemStack item : player.getInventory().getArmorContents()) addItemToList(item, result);
-        addItemToList(player.getInventory().getItemInOffHand(), result);
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            addItemToList(item, result);
+            if (bagManager != null && bagManager.isBag(item)) {
+                for (ItemStack bagItem : bagManager.getBagContents(item)) addItemToList(bagItem, result);
+            }
+        }
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        addItemToList(offhand, result);
+        if (bagManager != null && bagManager.isBag(offhand)) {
+            for (ItemStack bagItem : bagManager.getBagContents(offhand)) addItemToList(bagItem, result);
+        }
         return result;
     }
 

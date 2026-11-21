@@ -269,6 +269,18 @@ public class BossArena extends JavaPlugin {
             return true;
         });
 
+        getCommand("baginvsee").setExecutor((sender, command, label, args) -> {
+            if (!sender.hasPermission("bossarena.admin")) { sender.sendMessage(ChatColor.RED + "❌ У вас нет прав!"); return true; }
+            if (!(sender instanceof Player admin)) { sender.sendMessage(ChatColor.RED + "❌ Только для игроков!"); return true; }
+            if (args.length < 1) { admin.sendMessage(ChatColor.RED + "❌ /baginvsee <игрок>"); return true; }
+            Player target = Bukkit.getPlayer(args[0]);
+            if (target == null) { admin.sendMessage(ChatColor.RED + "❌ Игрок не найден!"); return true; }
+            if (!bagManager.openBagForAdmin(admin, target)) {
+                admin.sendMessage(ChatColor.RED + "❌ У игрока " + target.getName() + " нет сумки!");
+            }
+            return true;
+        });
+
         getCommand("calendar").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) { sender.sendMessage(ChatColor.RED + "❌ Только для игроков!"); return true; }
             calendarManager.openCalendar(player);

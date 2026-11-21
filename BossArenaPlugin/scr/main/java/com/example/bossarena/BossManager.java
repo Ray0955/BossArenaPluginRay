@@ -1,4 +1,4 @@
-package com.example.bossarena; 
+package com.example.bossarena;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;

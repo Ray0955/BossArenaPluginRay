@@ -616,4 +616,110 @@ public class BossManager {
                         isChestAccessible = true;
                         w.playSound(loc, Sound.BLOCK_CHEST_OPEN, 1, 1);
                         w.playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
-                        w.spawnParticle(Particle.TOTEM_OF_UNDYING, c.clone().add(0, 0.5,
+                        w.spawnParticle(Particle.TOTEM_OF_UNDYING, c.clone().add(0, 0.5, 0), 40, 0.6, 0.5, 0.6, 0.25);
+                        Bukkit.broadcast(Component.text(ChatColor.GOLD + "📦 Сундук открыт!"));
+                        opened = true;
+                        elapsed = 0;
+                        updateHologram(true, 1.0);
+                        return;
+                    }
+                    if (elapsed % 10 == 0) updateHologram(false, elapsed / (double) openTicks);
+                } else {
+                    w.spawnParticle(Particle.END_ROD, c.clone().add(0, 0.6, 0), 2, 0.5, 0.4, 0.5, 0.02);
+                    if (elapsed >= despawnTicks) { despawnChestWithEffects(!isChestEmpty()); this.cancel(); return; }
+                    if (elapsed % 10 == 0) updateHologram(true, 1.0 - elapsed / (double) despawnTicks);
+                }
+                elapsed += 2;
+            }
+        }.runTaskTimer(plugin, 0L, 2L);
+    }
+
+    public void despawnChestWithEffects(boolean hadItems) {
+        if (chestLocation == null || !isChestActive) return;
+        if (chestFallTask != null) { chestFallTask.cancel(); chestFallTask = null; }
+        removeFalling();
+        removeHologram();
+        if (chestBlock != null && chestBlock.getType() == Material.CHEST) chestBlock.setType(Material.AIR);
+        chestBlock = null;
+        World world = chestLocation.getWorld();
+        if (world != null && plugin.getConfig().getBoolean("chest_settings.despawn_effects", true)) world.spawnParticle(Particle.DRAGON_BREATH, chestLocation.clone().add(0, 0.5, 0), 100, 1, 1, 1, 0.0f);
+        Bukkit.broadcast(Component.text(ChatColor.LIGHT_PURPLE + "✨ Сундук исчез!"));
+        if (chestInventory != null) { chestInventory.clear(); chestInventory = null; }
+        isChestActive = false;
+        isChestOpen = false;
+        isChestAccessible = false;
+        playersWhoOpened.clear();
+        savedChestContents.clear();
+        chestLocation = null;
+        if (chestTask != null) { chestTask.cancel(); chestTask = null; }
+    }
+
+    public boolean isChestEmpty() {
+        if (chestInventory == null) return true;
+        for (ItemStack item : chestInventory.getContents()) if (item != null && !item.getType().isAir()) return false;
+        return true;
+    }
+
+    public void addChestOpener(Player player) { playersWhoOpened.add(player.getUniqueId()); }
+
+    public void addPlayerToBossBar(Player player) {
+        if (bossBar == null || !isBossAlive || boss == null || boss.isDead()) return;
+        double viewRange = plugin.getConfig().getDouble("settings.bossbar_view_range", 200.0);
+        if (player.getWorld().equals(boss.getWorld())
+                && player.getLocation().distanceSquared(boss.getLocation()) <= viewRange * viewRange) {
+            bossBar.addPlayer(player);
+        }
+    }
+
+    public void cleanupBossOnly() {
+        if (boss != null && !boss.isDead()) boss.remove();
+        helpers.forEach(h -> { if (!h.isDead()) h.remove(); });
+        helpers.clear();
+        if (bossBar != null) { bossBar.removeAll(); bossBar = null; }
+        if (nextBossTimerTask != null) { nextBossTimerTask.cancel(); nextBossTimerTask = null; }
+        isBossAlive = false;
+    }
+
+    public void cleanup() {
+        cleanupBossOnly();
+        if (chestFallTask != null) { chestFallTask.cancel(); chestFallTask = null; }
+        removeFalling();
+        removeHologram();
+        if (chestBlock != null && chestBlock.getType() == Material.CHEST) chestBlock.setType(Material.AIR);
+        chestBlock = null;
+        if (chestTask != null) { chestTask.cancel(); chestTask = null; }
+        if (chestInventory != null) { chestInventory.clear(); chestInventory = null; }
+        chestLocation = null;
+        isChestActive = false;
+        isChestOpen = false;
+        isChestAccessible = false;
+        playersWhoOpened.clear();
+        savedChestContents.clear();
+        isSpawning = false;
+        activeBossData = null;
+        playerDamage.clear();
+        playerHits.clear();
+        usedThresholds.clear();
+    }
+
+    public BossRotationManager getRotationManager() { return rotationManager; }
+    public LootManager getLootManager() { return currentLootManager; }
+    public CustomItemsManager getCustomItemsManager() { return customItemsManager; }
+    public LivingEntity getBoss() { return boss; }
+    public List<LivingEntity> getHelpers() { return helpers; }
+    public BossBar getBossBar() { return bossBar; }
+    public double getPlayerDamage(Player player) { return playerDamage.getOrDefault(player.getUniqueId(), 0.0); }
+    public int getPlayerHits(Player player) { return playerHits.getOrDefault(player.getUniqueId(), 0); }
+    public boolean isBossAlive() { return isBossAlive; }
+    public boolean isChestActive() { return isChestActive; }
+    public boolean isChestOpen() { return isChestOpen; }
+    public boolean isChestAccessible() { return isChestAccessible; }
+    public boolean isSpawning() { return isSpawning; }
+    public Location getChestLocation() { return chestLocation; }
+    public Inventory getChestInventory() { return chestInventory; }
+    public Set<UUID> getChestOpeners() { return playersWhoOpened; }
+    public String getLastBossName() { return lastBossName; }
+    public double getLastBossMaxHealth() { return lastBossMaxHealth; }
+    public double getLastBossDamage(Player player) { return lastBossDamage.getOrDefault(player.getUniqueId(), 0.0); }
+    public int getLastBossHits(Player player) { return lastBossHits.getOrDefault(player.getUniqueId(), 0); }
+}

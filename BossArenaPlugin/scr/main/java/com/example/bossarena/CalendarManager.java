@@ -132,6 +132,33 @@ public class CalendarManager implements Listener {
 
     public String todayKey() { return now().getDayOfWeek().name().toLowerCase(); }
 
+    /**
+     * Возвращает количество минут до следующего календарного босса.
+     * Если событий нет — возвращает -1.
+     */
+    public long getMinutesUntilNextBoss() {
+        ZonedDateTime now = now();
+        LocalDate today = now.toLocalDate();
+        long minMinutes = Long.MAX_VALUE;
+        boolean found = false;
+
+        for (int offset = 0; offset <= 1; offset++) {
+            LocalDate date = today.plusDays(offset);
+            String dayKey = date.getDayOfWeek().name().toLowerCase();
+            for (BossEvent ev : getEvents(dayKey)) {
+                String time = normalizeTime(ev.time);
+                if (time == null) continue;
+                ZonedDateTime at = ZonedDateTime.of(date, LocalTime.parse(time, TIME_OUT), getZone());
+                long minutes = ChronoUnit.MINUTES.between(now, at);
+                if (minutes > 0 && minutes < minMinutes) {
+                    minMinutes = minutes;
+                    found = true;
+                }
+            }
+        }
+        return found ? minMinutes : -1;
+    }
+
     private void startScheduler() {
         Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
     }

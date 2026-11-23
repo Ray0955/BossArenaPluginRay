@@ -9,8 +9,8 @@ softdepend: [PlaceholderAPI]
 
 commands:
   boss:
-    description: Запустить арену с установленной точки
-    usage: /boss
+    description: Запустить арену или купить вызов босса
+    usage: /boss [buy <id>]
     permission: bossarena.admin
   setboss:
     description: Установить точку спавна для босса

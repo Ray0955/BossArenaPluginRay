@@ -1,5 +1,6 @@
 package com.example.bossarena;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -31,6 +32,10 @@ public class BossArena extends JavaPlugin {
 
         if (!setupEconomy()) {
             getLogger().warning("❌ Vault не найден! Донат-валюта не будет работать!");
+        }
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
+            getLogger().warning("❌ PlaceholderAPI не найден! Проверка баланса для /boss buy не будет работать!");
         }
 
         this.bossManager = new BossManager(this);
@@ -67,16 +72,115 @@ public class BossArena extends JavaPlugin {
         return ChatColor.translateAlternateColorCodes('&', getConfig().getString("messages." + key, def));
     }
 
+    /**
+     * Проверяет баланс игрока через PlaceholderAPI.
+     * Возвращает -1, если плейсхолдер не сработал.
+     */
+    private double getBalance(Player player) {
+        String placeholder = getConfig().getString("commands.balance_placeholder", "%coinsengine_balance_coins%");
+        try {
+            String parsed = PlaceholderAPI.setPlaceholders(player, placeholder);
+            return Double.parseDouble(parsed.replace(",", "."));
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     private void registerCommands() {
         getCommand("boss").setExecutor((sender, command, label, args) -> {
-            if (!sender.hasPermission("bossarena.admin")) {
-                sender.sendMessage(ChatColor.RED + "❌ У вас нет прав!");
-                return true;
-            }
             if (!(sender instanceof Player player)) {
                 sender.sendMessage(ChatColor.RED + "❌ Только для игроков!");
                 return true;
             }
+
+            // ---------- /boss buy <id> ----------
+            if (args.length >= 1 && args[0].equalsIgnoreCase("buy")) {
+
+                // Список боссов, если ID не указан
+                if (args.length < 2) {
+                    player.sendMessage(ChatColor.GOLD + "=== Доступные боссы для покупки ===");
+                    for (BossRotationManager.BossData b : bossManager.getRotationManager().getBosses()) {
+                        int p = getConfig().getInt("bosses." + b.id + ".price", 0);
+                        if (p <= 0) continue;
+                        String world = (b.spawnPoint != null && b.spawnPoint.location.getWorld() != null)
+                                ? b.spawnPoint.location.getWorld().getName() : "?";
+                        player.sendMessage(ChatColor.YELLOW + b.id + ChatColor.GRAY + " — "
+                                + b.bossName + ChatColor.GRAY + " (" + world + ") — "
+                                + ChatColor.GOLD + p + " монет");
+                    }
+                    player.sendMessage(ChatColor.GRAY + "Использование: /boss buy <id>");
+                    return true;
+                }
+
+                String id = args[1].toLowerCase();
+                BossRotationManager.BossData data = bossManager.findBossData(id);
+
+                if (data == null) {
+                    player.sendMessage(ChatColor.RED + "❌ Босс '" + id + "' не найден! Доступные:");
+                    for (BossRotationManager.BossData b : bossManager.getRotationManager().getBosses()) {
+                        int p = getConfig().getInt("bosses." + b.id + ".price", 0);
+                        if (p <= 0) continue;
+                        String world = (b.spawnPoint != null && b.spawnPoint.location.getWorld() != null)
+                                ? b.spawnPoint.location.getWorld().getName() : "?";
+                        player.sendMessage(ChatColor.YELLOW + b.id + ChatColor.GRAY + " — "
+                                + b.bossName + ChatColor.GRAY + " (" + world + ") — "
+                                + ChatColor.GOLD + p + " монет");
+                    }
+                    return true;
+                }
+
+                int price = getConfig().getInt("bosses." + id + ".price", 0);
+                if (price <= 0) {
+                    player.sendMessage(ChatColor.RED + "❌ Этот босс нельзя вызвать за валюту!");
+                    return true;
+                }
+
+                // Проверки
+                if (bossManager.isBossAlive()) { player.sendMessage(ChatColor.RED + "❌ Босс уже жив! Дождитесь его смерти."); return true; }
+                if (bossManager.isChestActive()) { player.sendMessage(ChatColor.RED + "❌ Сундук ещё активен! Дождитесь его исчезновения."); return true; }
+                if (bossManager.isSpawning()) { player.sendMessage(ChatColor.RED + "❌ Босс уже спавнится! Подождите."); return true; }
+
+                long minutesUntilCalendar = calendarManager.getMinutesUntilNextBoss();
+                int blockMinutes = getConfig().getInt("calendar.block_buy_before_minutes", 60);
+                if (minutesUntilCalendar >= 0 && minutesUntilCalendar <= blockMinutes) {
+                    player.sendMessage(ChatColor.RED + "❌ До календарного босса осталось " + minutesUntilCalendar + " мин. Покупка недоступна!");
+                    return true;
+                }
+
+                // Проверка баланса через PlaceholderAPI
+                double balance = getBalance(player);
+                if (balance < 0) {
+                    player.sendMessage(ChatColor.RED + "❌ Не удалось проверить баланс. Обратитесь к админу.");
+                    return true;
+                }
+                if (balance < price) {
+                    player.sendMessage(ChatColor.RED + "❌ Недостаточно средств! Нужно: " + price);
+                    return true;
+                }
+
+                // Списание через команду из конфига
+                String takeCmd = getConfig().getString("commands.take", "coins take %player% %amount%");
+                String cmd = takeCmd.replace("%player%", player.getName()).replace("%amount%", String.valueOf(price));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+
+                // Спавн
+                if (bossManager.spawnBossById(id, false)) {
+                    player.sendMessage(ChatColor.GREEN + "✅ Босс " + data.bossName + " вызван за " + price + " монет!");
+                    Bukkit.broadcast(net.kyori.adventure.text.Component.text(
+                            ChatColor.GOLD + "📢 " + ChatColor.WHITE + player.getName()
+                            + ChatColor.GOLD + " купил босса " + data.bossName + ChatColor.GOLD + "!"));
+                } else {
+                    player.sendMessage(ChatColor.RED + "❌ Не удалось вызвать босса. Валюта не возвращается.");
+                }
+                return true;
+            }
+
+            // ---------- /boss <id> (только админ) ----------
+            if (!sender.hasPermission("bossarena.admin")) {
+                sender.sendMessage(ChatColor.RED + "❌ У вас нет прав!");
+                return true;
+            }
+
             if (args.length >= 1) {
                 String id = args[0].toLowerCase();
                 BossRotationManager.BossData data = bossManager.findBossData(id);
@@ -114,6 +218,7 @@ public class BossArena extends JavaPlugin {
                 }
                 return true;
             }
+
             if (!bossManager.hasBossSpawnPoint()) {
                 player.sendMessage(ChatColor.RED + "❌ Точка спавна не установлена!");
                 player.sendMessage(ChatColor.YELLOW + "Используйте /setboss");
@@ -129,10 +234,17 @@ public class BossArena extends JavaPlugin {
 
         getCommand("boss").setTabCompleter((sender, command, alias, args) -> {
             List<String> result = new ArrayList<>();
-            if (!sender.hasPermission("bossarena.admin") || args.length != 1) return result;
-            String prefix = args[0].toLowerCase();
-            for (BossRotationManager.BossData b : bossManager.getRotationManager().getBosses()) {
-                if (b.id.toLowerCase().startsWith(prefix)) result.add(b.id);
+            if (args.length == 1) {
+                result.add("buy");
+                if (sender.hasPermission("bossarena.admin")) {
+                    for (BossRotationManager.BossData b : bossManager.getRotationManager().getBosses()) {
+                        if (b.id.toLowerCase().startsWith(args[0].toLowerCase())) result.add(b.id);
+                    }
+                }
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("buy")) {
+                for (BossRotationManager.BossData b : bossManager.getRotationManager().getBosses()) {
+                    if (b.id.toLowerCase().startsWith(args[1].toLowerCase())) result.add(b.id);
+                }
             }
             return result;
         });

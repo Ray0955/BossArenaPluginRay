@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -309,10 +310,30 @@ public class BossNPCManager implements Listener {
 
         List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
         lore.add(Component.empty());
-        lore.add(comp("&8▪ &7Шанс: " + rarityColor(c, li.isCustom) + fmt(c) + "%"));
         lore.add(comp("&8▪ &7Количество: &f"
                 + (li.minAmount == li.maxAmount ? String.valueOf(li.minAmount) : li.minAmount + "-" + li.maxAmount)));
         lore.add(comp("&8▪ &7Редкость: " + rarityName(c, li.isCustom)));
+
+        // ★ Информация о баффах (если кастомный) ★
+        if (li.isCustom) {
+            CustomItemsManager.CustomItem customItem = bossManager.getCustomItemsManager().getCustomItem(li.itemId);
+            if (customItem != null && (!customItem.attributes.isEmpty() || !customItem.potionEffects.isEmpty())) {
+                lore.add(Component.empty());
+                lore.add(comp("&6★ БАФФЫ:"));
+                for (Map.Entry<Attribute, Double> attr : customItem.attributes.entrySet()) {
+                    String name = formatAttribute(attr.getKey());
+                    double val = attr.getValue();
+                    String valStr = val > 0 ? "+" + fmt(val) : fmt(val);
+                    lore.add(comp("&2✦ " + name + " " + valStr));
+                }
+                for (Map.Entry<String, int[]> eff : customItem.potionEffects.entrySet()) {
+                    String name = formatPotion(eff.getKey());
+                    int level = eff.getValue()[1];
+                    lore.add(comp("&2✦ " + name + " " + toRoman(level)));
+                }
+            }
+        }
+
         if (c >= 100.0 && partial) lore.add(comp("&8▪ &7В сундуке выпадает лишь часть таких"));
         meta.lore(lore);
 
@@ -320,6 +341,51 @@ public class BossNPCManager implements Listener {
         if (mythic) meta.setEnchantmentGlintOverride(true);
         stack.setItemMeta(meta);
         return stack;
+    }
+
+    private String formatAttribute(Attribute attr) {
+        return switch (attr) {
+            case GENERIC_MAX_HEALTH -> "Здоровье";
+            case GENERIC_ATTACK_DAMAGE -> "Урон";
+            case GENERIC_ATTACK_SPEED -> "Скорость атаки";
+            case GENERIC_MOVEMENT_SPEED -> "Скорость";
+            case GENERIC_ARMOR -> "Броня";
+            case GENERIC_ARMOR_TOUGHNESS -> "Твёрдость";
+            case GENERIC_KNOCKBACK_RESISTANCE -> "Отбрасывание";
+            case GENERIC_LUCK -> "Удача";
+            default -> attr.getKey().getKey().replace("_", " ");
+        };
+    }
+
+    private String formatPotion(String effect) {
+        return switch (effect.toUpperCase()) {
+            case "SPEED" -> "Скорость";
+            case "STRENGTH" -> "Сила";
+            case "REGENERATION" -> "Регенерация";
+            case "RESISTANCE" -> "Сопротивление";
+            case "FIRE_RESISTANCE" -> "Огнестойкость";
+            case "NIGHT_VISION" -> "Ночное зрение";
+            case "JUMP_BOOST" -> "Прыгучесть";
+            case "HASTE" -> "Спешка";
+            case "LUCK" -> "Удача";
+            default -> effect;
+        };
+    }
+
+    private String toRoman(int level) {
+        return switch (level) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            case 6 -> "VI";
+            case 7 -> "VII";
+            case 8 -> "VIII";
+            case 9 -> "IX";
+            case 10 -> "X";
+            default -> String.valueOf(level);
+        };
     }
 
     private void openPage(Player player, List<ItemStack> items, int page) {

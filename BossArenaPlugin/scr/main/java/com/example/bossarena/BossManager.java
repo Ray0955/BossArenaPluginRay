@@ -568,9 +568,15 @@ public class BossManager {
             itemName = item.getType().name().toLowerCase().replace("_", " ");
         }
         if (itemChance < 1.0) {
-            String message = plugin.getConfig().getString("messages.rare_item", "&6&l✨ &d&l{PLAYER} &fполучил редкий предмет: &e&l{ITEM}");
-            message = message.replace("{PLAYER}", player.getName()).replace("{ITEM}", itemName).replace("{AMOUNT}", String.valueOf(item.getAmount()));
-            Bukkit.broadcast(Component.text(ChatColor.translateAlternateColorCodes('&', message)));
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                p.sendMessage("");
+                p.sendMessage(ChatColor.GOLD + "  ╔══════════════════════════════════╗");
+                p.sendMessage(ChatColor.GOLD + "  ║  " + ChatColor.LIGHT_PURPLE + "✨ РЕДКИЙ ПРЕДМЕТ! ✨");
+                p.sendMessage(ChatColor.GOLD + "  ║  " + ChatColor.WHITE + player.getName());
+                p.sendMessage(ChatColor.GOLD + "  ║  " + ChatColor.YELLOW + "получил: " + itemName);
+                p.sendMessage(ChatColor.GOLD + "  ╚══════════════════════════════════╝");
+                p.sendMessage("");
+            }
         }
     }
 

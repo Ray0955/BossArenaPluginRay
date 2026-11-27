@@ -16,6 +16,8 @@ public class LootManager {
     private final Random random = new Random();
     private final CustomItemsManager customItemsManager;
 
+    private double lootBonus = 0.0;
+
     private static final Map<String, String> ALIASES = Map.of("SEEDS", "WHEAT_SEEDS");
 
     public LootManager(JavaPlugin plugin) {
@@ -23,6 +25,8 @@ public class LootManager {
         this.customItemsManager = ((BossArena) plugin).getBossManager().getCustomItemsManager();
         loadGlobalLoot();
     }
+
+    public void setLootBonus(double bonus) { this.lootBonus = bonus; }
 
     public void loadGlobalLoot() {
         lootItems.clear();
@@ -84,7 +88,8 @@ public class LootManager {
         List<LootItem> guaranteed = new ArrayList<>();
         for (LootItem item : lootItems) {
             if (item.chance >= 100.0) { guaranteed.add(item); continue; }
-            if (random.nextDouble() * 100 <= item.chance) {
+            double effectiveChance = Math.min(100.0, item.chance + lootBonus);
+            if (random.nextDouble() * 100 <= effectiveChance) {
                 int amount = item.minAmount + random.nextInt(item.maxAmount - item.minAmount + 1);
                 addSplit(rewards, item.material, amount);
             }
@@ -104,7 +109,10 @@ public class LootManager {
             addSplit(rewards, item.material, amount);
         }
         List<LootItem> droppedCustom = new ArrayList<>();
-        for (LootItem item : customLootItems) if (random.nextDouble() * 100 <= item.chance) droppedCustom.add(item);
+        for (LootItem item : customLootItems) {
+            double effectiveChance = Math.min(100.0, item.chance + lootBonus);
+            if (random.nextDouble() * 100 <= effectiveChance) droppedCustom.add(item);
+        }
         if (!droppedCustom.isEmpty()) {
             LootItem selected = droppedCustom.get(random.nextInt(droppedCustom.size()));
             ItemStack customStack = customItemsManager.createItem(selected.itemId);

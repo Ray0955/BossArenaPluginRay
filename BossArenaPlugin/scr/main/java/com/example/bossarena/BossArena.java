@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -23,6 +24,7 @@ public class BossArena extends JavaPlugin {
     private BossNPCManager bossNPCManager;
     private ArenaManager arenaManager;
     private BagManager bagManager;
+    private SummonKeyManager summonKeyManager;
 
     @Override
     public void onEnable() {
@@ -46,6 +48,8 @@ public class BossArena extends JavaPlugin {
 
         this.bagManager = new BagManager(this, bossManager.getCustomItemsManager());
         bossManager.getCustomItemsManager().setBagManager(this.bagManager);
+
+        this.summonKeyManager = new SummonKeyManager(this, bossManager, calendarManager, bossManager.getCustomItemsManager());
 
         getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getServer().getPluginManager().registerEvents(calendarManager, this);
@@ -72,10 +76,6 @@ public class BossArena extends JavaPlugin {
         return ChatColor.translateAlternateColorCodes('&', getConfig().getString("messages." + key, def));
     }
 
-    /**
-     * Проверяет баланс игрока через PlaceholderAPI.
-     * Возвращает -1, если плейсхолдер не сработал.
-     */
     private double getBalance(Player player) {
         String placeholder = getConfig().getString("commands.balance_placeholder", "%coinsengine_balance_coins%");
         try {
@@ -95,8 +95,6 @@ public class BossArena extends JavaPlugin {
 
             // ---------- /boss buy <id> ----------
             if (args.length >= 1 && args[0].equalsIgnoreCase("buy")) {
-
-                // Список боссов, если ID не указан
                 if (args.length < 2) {
                     player.sendMessage(ChatColor.GOLD + "=== Доступные боссы для покупки ===");
                     for (BossRotationManager.BossData b : bossManager.getRotationManager().getBosses()) {
@@ -135,7 +133,6 @@ public class BossArena extends JavaPlugin {
                     return true;
                 }
 
-                // Проверки
                 if (bossManager.isBossAlive()) { player.sendMessage(ChatColor.RED + "❌ Босс уже жив! Дождитесь его смерти."); return true; }
                 if (bossManager.isChestActive()) { player.sendMessage(ChatColor.RED + "❌ Сундук ещё активен! Дождитесь его исчезновения."); return true; }
                 if (bossManager.isSpawning()) { player.sendMessage(ChatColor.RED + "❌ Босс уже спавнится! Подождите."); return true; }
@@ -147,7 +144,6 @@ public class BossArena extends JavaPlugin {
                     return true;
                 }
 
-                // Проверка баланса через PlaceholderAPI
                 double balance = getBalance(player);
                 if (balance < 0) {
                     player.sendMessage(ChatColor.RED + "❌ Не удалось проверить баланс. Обратитесь к админу.");
@@ -158,12 +154,10 @@ public class BossArena extends JavaPlugin {
                     return true;
                 }
 
-                // Списание через команду из конфига
                 String takeCmd = getConfig().getString("commands.take", "coins take %player% %amount%");
                 String cmd = takeCmd.replace("%player%", player.getName()).replace("%amount%", String.valueOf(price));
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
 
-                // Спавн
                 if (bossManager.spawnBossById(id, false)) {
                     player.sendMessage(ChatColor.GREEN + "✅ Босс " + data.bossName + " вызван за " + price + " монет!");
                     Bukkit.broadcast(net.kyori.adventure.text.Component.text(
@@ -175,7 +169,6 @@ public class BossArena extends JavaPlugin {
                 return true;
             }
 
-            // ---------- /boss <id> (только админ) ----------
             if (!sender.hasPermission("bossarena.admin")) {
                 sender.sendMessage(ChatColor.RED + "❌ У вас нет прав!");
                 return true;
@@ -339,7 +332,7 @@ public class BossArena extends JavaPlugin {
             if (args.length >= 3) {
                 try { amount = Integer.parseInt(args[2]); } catch (NumberFormatException e) { sender.sendMessage(ChatColor.RED + "❌ Количество должно быть числом!"); return true; }
             }
-            org.bukkit.inventory.ItemStack item = bossManager.getCustomItemsManager().createItem(itemId);
+            ItemStack item = bossManager.getCustomItemsManager().createItem(itemId);
             if (item == null) { sender.sendMessage(ChatColor.RED + "❌ Предмет '" + itemId + "' не найден!"); return true; }
             item.setAmount(amount);
             target.getInventory().addItem(item);
@@ -373,7 +366,7 @@ public class BossArena extends JavaPlugin {
             if (args.length >= 2) {
                 try { amount = Integer.parseInt(args[1]); } catch (NumberFormatException ignored) {}
             }
-            org.bukkit.inventory.ItemStack bag = bagManager.createBag();
+            ItemStack bag = bagManager.createBag();
             if (bag == null) { sender.sendMessage(ChatColor.RED + "❌ Сумка не найдена в custom_items (добавь custom_bag)!"); return true; }
             bag.setAmount(amount);
             target.getInventory().addItem(bag);
@@ -390,6 +383,21 @@ public class BossArena extends JavaPlugin {
             if (!bagManager.openBagForAdmin(admin, target)) {
                 admin.sendMessage(ChatColor.RED + "❌ У игрока " + target.getName() + " нет сумки!");
             }
+            return true;
+        });
+
+        getCommand("givekey").setExecutor((sender, command, label, args) -> {
+            if (!sender.hasPermission("bossarena.admin")) { sender.sendMessage(ChatColor.RED + "❌ У вас нет прав!"); return true; }
+            if (args.length < 1) { sender.sendMessage(ChatColor.RED + "❌ /givekey <игрок> [кол-во]"); return true; }
+            Player target = Bukkit.getPlayer(args[0]);
+            if (target == null) { sender.sendMessage(ChatColor.RED + "❌ Игрок не найден!"); return true; }
+            int amount = 1;
+            if (args.length >= 2) { try { amount = Integer.parseInt(args[1]); } catch (NumberFormatException ignored) {} }
+            ItemStack key = summonKeyManager.createKey();
+            if (key == null) { sender.sendMessage(ChatColor.RED + "❌ Ключ не найден в config.yml!"); return true; }
+            key.setAmount(amount);
+            target.getInventory().addItem(key);
+            sender.sendMessage(ChatColor.GREEN + "✅ Выдано " + amount + " ключей игроку " + target.getName());
             return true;
         });
 
@@ -459,4 +467,5 @@ public class BossArena extends JavaPlugin {
     public BossNPCManager getBossNPCManager() { return bossNPCManager; }
     public ArenaManager getArenaManager() { return arenaManager; }
     public BagManager getBagManager() { return bagManager; }
+    public SummonKeyManager getSummonKeyManager() { return summonKeyManager; }
 }

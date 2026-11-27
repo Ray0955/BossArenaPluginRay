@@ -43,6 +43,10 @@ commands:
     description: Открыть сумку игрока (админ)
     usage: /baginvsee <игрок>
     permission: bossarena.admin
+  givekey:
+    description: Выдать ключ призыва босса
+    usage: /givekey <игрок> [кол-во]
+    permission: bossarena.admin
   calendar:
     description: Показать календарь событий
     usage: /calendar

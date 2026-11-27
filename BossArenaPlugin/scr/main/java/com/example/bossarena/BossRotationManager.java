@@ -67,9 +67,12 @@ public class BossRotationManager {
                 String spawnMessage = helpersSection.getString("spawn_message", "&6&l⚔️ Помощники появились!");
                 int respawnDelay = bossConfig.getInt("respawn_delay", 30);
 
+                // ★ Бонус к шансу дропа ★
+                double lootBonus = bossConfig.getDouble("loot_bonus", 0.0);
+
                 bosses.add(new BossData(key, spawnPoint, bossType, bossHealth, bossName, bossDamage,
                         helpersEnabled, spawnMode, thresholds, helperCount, helperHealth, helperType,
-                        bossInvulnerable, helperDamage, spawnMessage, respawnDelay));
+                        bossInvulnerable, helperDamage, spawnMessage, respawnDelay, lootBonus));
             } catch (Exception e) {
                 plugin.getLogger().warning("❌ Ошибка загрузки босса " + key + ": " + e.getMessage());
             }
@@ -135,12 +138,13 @@ public class BossRotationManager {
         public final double helperDamage;
         public final String spawnMessage;
         public final int respawnDelay;
+        public final double lootBonus;
 
         public BossData(String id, BossSpawnPoint spawnPoint, EntityType bossType, double bossHealth,
                         String bossName, double bossDamage, boolean helpersEnabled, String spawnMode,
                         List<Double> healthThresholds, int helperCount, double helperHealth,
                         EntityType helperType, boolean bossInvulnerable, double helperDamage,
-                        String spawnMessage, int respawnDelay) {
+                        String spawnMessage, int respawnDelay, double lootBonus) {
             this.id = id;
             this.spawnPoint = spawnPoint;
             this.bossType = bossType;
@@ -157,6 +161,7 @@ public class BossRotationManager {
             this.helperDamage = helperDamage;
             this.spawnMessage = spawnMessage;
             this.respawnDelay = respawnDelay;
+            this.lootBonus = lootBonus;
         }
     }
 }
